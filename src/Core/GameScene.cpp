@@ -5,11 +5,12 @@
 #include "Assets/Components/Transform.h"
 #include "Assets/Components/Renderer2D.h"
 #include "imgui.h"
-#include "../../../include/Asteroids_App.h"
+#include "../../../include/EmptyApp.h"
 #include "Assets/Components/Collider2D.h"
 #include "Assets/Components/UITexture.h"
 #include "Core/HelperFunctions.h"
 #include "Core/CoreSystems/ResourceManager.h"
+#include "Scene/SceneManager.h"
 
 Core::GameScene::GameScene(const std::uint32_t maxEntitiesInScene)
 {
@@ -84,7 +85,7 @@ void Core::GameScene::Update(const float deltaTime)
 	if (m_sceneEndTriggered)
 	{
 		CleanupScene();
-		static_cast<Asteroids_App*>(GetApplicationInstance())->NotifySceneForDelete(this);
+		Application::GetSceneManager().NotifySceneForDelete(this);
 		return;
 	}
 

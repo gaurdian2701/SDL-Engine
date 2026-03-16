@@ -5,6 +5,7 @@
 #include <SDL3/SDL_init.h>
 #include "PrintDebug.h"
 #include "Core/CoreSystems/CoreSystemsHolder.h"
+#include "Scene/SceneManager.h"
 #include "SDL3_ttf/SDL_ttf.h"
 
 #ifdef _DEBUG
@@ -64,6 +65,12 @@ Application::~Application()
 Application& Application::GetCoreInstance()
 {
     return *CoreApplicationInstance;
+}
+
+Scene::SceneManager& Application::GetSceneManager()
+{
+    static Scene::SceneManager sceneManager = Scene::SceneManager();
+    return sceneManager;
 }
 
 void Application::Init()

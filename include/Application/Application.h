@@ -2,6 +2,11 @@
 #include "SDL3/SDL_render.h"
 #include "SDL3/SDL_video.h"
 
+namespace Scene
+{
+	class SceneManager;
+}
+
 class Renderer;
 class Window;
 
@@ -16,6 +21,7 @@ public:
 	virtual void EndApplication() = 0;
 
 	static Application& GetCoreInstance();
+	static Scene::SceneManager& GetSceneManager();
 
 	void Init();
 	void Run();
