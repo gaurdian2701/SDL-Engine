@@ -3,6 +3,7 @@
 #include "Core/ECS/Systems/PhysicsSystem.h"
 #include "Core/ECS/Systems/RenderingSystem.h"
 #include "Core/ECS/Systems/TransformSolverSystem.h"
+#include "Core/ECS/Systems/DebugEditorSystem.h"
 
 std::vector<void(*)(Core::ECS::ECSManager &, const std::uint32_t)>&
 Core::ECS::ECSManager::GetComponentRemovalHandlesArray()
@@ -25,15 +26,18 @@ void Core::ECS::ECSManager::InitializeManager(uint32_t someMaxEntities)
 
 void Core::ECS::ECSManager::CreateSystems()
 {
-	m_SystemsList.push_back(new Systems::TransformSolverSystem());
-	m_SystemsList.push_back(new Systems::ParticleSystem());
-	m_SystemsList.push_back(new Systems::PhysicsSystem());
-	m_SystemsList.push_back(new Systems::RenderingSystem());
+#ifdef _DEBUG
+	m_systemsList.push_back(new Systems::DebugEditorSystem());
+#endif
+	m_systemsList.push_back(new Systems::TransformSolverSystem());
+	m_systemsList.push_back(new Systems::ParticleSystem());
+	m_systemsList.push_back(new Systems::PhysicsSystem());
+	m_systemsList.push_back(new Systems::RenderingSystem());
 }
 
 void Core::ECS::ECSManager::InitializeSystems()
 {
-	for (auto system : m_SystemsList)
+	for (auto system : m_systemsList)
 	{
 		system->RegisterInterestedComponents();
 	}
@@ -41,7 +45,7 @@ void Core::ECS::ECSManager::InitializeSystems()
 
 void Core::ECS::ECSManager::BeginSystems()
 {
-	for (auto& system : m_SystemsList)
+	for (auto& system : m_systemsList)
 	{
 		system->BeginSystem();
 	}
@@ -49,15 +53,28 @@ void Core::ECS::ECSManager::BeginSystems()
 
 void Core::ECS::ECSManager::UpdateManager(const float deltaTime)
 {
-	for (auto& system : m_SystemsList)
+	for (auto& system : m_systemsList)
 	{
 		system->UpdateSystem(deltaTime);
 	}
 }
 
+#ifdef _DEBUG
+void Core::ECS::ECSManager::DebugUpdateManager(const float deltaTime, bool scenePaused)
+{
+	for (auto& system : m_systemsList)
+	{
+		if (!(scenePaused && system->m_shouldRunOnlyWhilePlaying))
+		{
+			system->UpdateSystem(deltaTime);
+		}
+	}
+}
+#endif
+
 void Core::ECS::ECSManager::CleanupManager()
 {
-	for (auto& system : m_SystemsList)
+	for (auto& system : m_systemsList)
 	{
 		system->CleanupSystem();
 	}

@@ -2,15 +2,15 @@
 #include "Application/Application.h"
 #include "Core/ECS/ECSManager.h"
 #include "SDL3/SDL_render.h"
-#include "Assets/Components/Renderer2D.h"
-#include "Assets/Components/Transform.h"
-#include "Assets/Components/UITexture.h"
+#include "Components/Renderer2D.h"
+#include "Components/Transform.h"
+#include "Components/UITexture.h"
 #include "Core/HelperFunctions.h"
 
 void Core::ECS::Systems::RenderingSystem::RegisterInterestedComponents()
 {
-	ECSManager::GetInstance().RegisterInterestedComponentsForSystem<Assets::Components::Transform,
-		Assets::Components::Renderer2D, Assets::Components::UITexture>(this);
+	ECSManager::GetInstance().RegisterInterestedComponentsForSystem<Components::Transform,
+		Components::Renderer2D, Components::UITexture>(this);
 }
 
 void Core::ECS::Systems::RenderingSystem::UpdateSystem(const float deltaTime)
@@ -18,8 +18,8 @@ void Core::ECS::Systems::RenderingSystem::UpdateSystem(const float deltaTime)
 	System::UpdateSystem(deltaTime);
 
 	//Render regular 2D sprites
-	ECSManager::GetInstance().ForEachUsingComponents<Assets::Components::Transform, Assets::Components::Renderer2D>(
-		[&](const Assets::Components::Transform* transform, Assets::Components::Renderer2D* renderer2D)
+	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::Renderer2D>(
+		[&](const Components::Transform* transform, Components::Renderer2D* renderer2D)
 		{
 			glm::vec2 screenCoordinates = ConvertToScreenCoordinates(transform->WorldPosition);
 			renderer2D->RenderRectangle.x = screenCoordinates.x - transform->WorldScale.x / 2;
@@ -41,8 +41,8 @@ void Core::ECS::Systems::RenderingSystem::UpdateSystem(const float deltaTime)
 		});
 
 	//Render UI on top of sprites
-	ECSManager::GetInstance().ForEachUsingComponents<Assets::Components::Transform, Assets::Components::UITexture>(
-	[&](const Assets::Components::Transform* transform, Assets::Components::UITexture* uiTexture)
+	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::UITexture>(
+	[&](const Components::Transform* transform, Components::UITexture* uiTexture)
 	{
 		glm::vec2 screenCoordinates = ConvertToScreenCoordinates(transform->WorldPosition);
 		uiTexture->RenderRectangle.x = screenCoordinates.x - transform->WorldScale.x / 2;

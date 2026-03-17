@@ -1,28 +1,28 @@
 ﻿#include "Core/ECS/Systems/TransformSolverSystem.h"
-#include "Assets/Components/Transform.h"
+#include "Components/Transform.h"
 #include "Core/ECS/ECSManager.h"
 
 void Core::ECS::Systems::TransformSolverSystem::RegisterInterestedComponents()
 {
-	Core::ECS::ECSManager::GetInstance().RegisterInterestedComponentsForSystem<Assets::Components::Transform>(this);
+	Core::ECS::ECSManager::GetInstance().RegisterInterestedComponentsForSystem<Components::Transform>(this);
 }
 
 void Core::ECS::Systems::TransformSolverSystem::UpdateSystem(const float deltaTime)
 {
 	System::UpdateSystem(deltaTime);
 
-    ECSManager::GetInstance().ForEachUsingComponents<Assets::Components::Transform>(
-        [&, this](Assets::Components::Transform* transform)
+    ECSManager::GetInstance().ForEachUsingComponents<Components::Transform>(
+        [&, this](Components::Transform* transform)
         {
             this->SolveTransform(transform);
         });
 }
 
-inline void Core::ECS::Systems::TransformSolverSystem::SolveTransform(Assets::Components::Transform* someTransform)
+inline void Core::ECS::Systems::TransformSolverSystem::SolveTransform(Components::Transform* someTransform)
 {
 	if (someTransform->ParentEntity != INVALID_ENTITY_ID)
 	{
-		auto parentTransform = ECSManager::GetInstance().GetComponent<Assets::Components::Transform>(someTransform->ParentEntity);
+		auto parentTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(someTransform->ParentEntity);
 		//Solve Scaling
 		someTransform->WorldScale = parentTransform->WorldScale * someTransform->LocalScale;
 

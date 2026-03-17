@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "System.h"
 
-namespace Assets::Components
+namespace Components
 {
     struct Transform;
 }
@@ -21,6 +21,6 @@ namespace Core::ECS::Systems
         void EndSystem() override{}
 
     private:
-        inline void SolveTransform(Assets::Components::Transform* someTransform);
+        inline void SolveTransform(Components::Transform* someTransform);
     };
 }

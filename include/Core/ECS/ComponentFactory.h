@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 
-namespace Core::ECS::Components
+namespace Core::ECS
 {
 	class ComponentFactory
 	{

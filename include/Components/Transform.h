@@ -1,10 +1,9 @@
 ﻿#pragma once
 #define GLM_ENABLE_EXPERIMENTAL
 #include "gtc/quaternion.hpp"
-#include "PrintDebug.h"
 #include "Scene/GameObject.h"
 
-namespace Assets::Components
+namespace Components
 {
     struct Transform
     {

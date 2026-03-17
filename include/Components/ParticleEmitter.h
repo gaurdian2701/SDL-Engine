@@ -8,7 +8,7 @@ namespace Scene
 	class GameObject;
 }
 
-namespace Assets::Components
+namespace Components
 {
 	struct Particle
 	{

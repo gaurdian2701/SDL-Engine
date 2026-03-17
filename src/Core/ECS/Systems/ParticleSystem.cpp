@@ -1,13 +1,13 @@
 ﻿#include "Core/ECS/Systems/ParticleSystem.h"
 #include "Core/HelperFunctions.h"
-#include "Assets/Components/ParticleEmitter.h"
-#include "Assets/Components/Transform.h"
+#include "Components/ParticleEmitter.h"
+#include "Components/Transform.h"
 #include "Core/ECS/ECSManager.h"
 
 void Core::ECS::Systems::ParticleSystem::RegisterInterestedComponents()
 {
-	ECSManager::GetInstance().RegisterInterestedComponentsForSystem<Assets::Components::Transform,
-		Assets::Components::ParticleEmitter>(this);
+	ECSManager::GetInstance().RegisterInterestedComponentsForSystem<Components::Transform,
+		Components::ParticleEmitter>(this);
 }
 
 void Core::ECS::Systems::ParticleSystem::BeginSystem()
@@ -18,9 +18,9 @@ void Core::ECS::Systems::ParticleSystem::BeginSystem()
 
 void Core::ECS::Systems::ParticleSystem::ProcessInitializationQueue()
 {
-	ECSManager::GetInstance().ForEachUsingEntities<Assets::Components::Transform, Assets::Components::ParticleEmitter>
+	ECSManager::GetInstance().ForEachUsingEntities<Components::Transform, Components::ParticleEmitter>
 	(m_initializationQueue,
-	 [&](const Assets::Components::Transform *transform, Assets::Components::ParticleEmitter *particleEmitter)
+	 [&](const Components::Transform *transform, Components::ParticleEmitter *particleEmitter)
 	 {
 		 std::uniform_int_distribution<int> randomDistribution(
 			 -particleEmitter->MaxDeviation, particleEmitter->MaxDeviation);
@@ -45,9 +45,9 @@ void Core::ECS::Systems::ParticleSystem::UpdateSystem(const float deltaTime)
 
 	glm::vec2 particleVelocity = glm::vec2(0.0f);
 
-	ECSManager::GetInstance().ForEachUsingComponents<Assets::Components::Transform,
-		Assets::Components::ParticleEmitter>(
-		[&, this](Assets::Components::Transform *transform, Assets::Components::ParticleEmitter *particleEmitter)
+	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform,
+		Components::ParticleEmitter>(
+		[&, this](Components::Transform *transform, Components::ParticleEmitter *particleEmitter)
 		{
 			std::uniform_int_distribution<int> randomDistribution(
 				-particleEmitter->MaxDeviation, particleEmitter->MaxDeviation);
@@ -83,8 +83,8 @@ void Core::ECS::Systems::ParticleSystem::UpdateSystem(const float deltaTime)
 		});
 }
 
-inline void Core::ECS::Systems::ParticleSystem::RenderParticle(Assets::Components::ParticleEmitter *someParticleEmitter,
-                                                               Assets::Components::Particle &someParticle)
+inline void Core::ECS::Systems::ParticleSystem::RenderParticle(Components::ParticleEmitter *someParticleEmitter,
+                                                               Components::Particle &someParticle)
 {
 	glm::vec2 screenCoordinates = ConvertToScreenCoordinates(someParticle.CurrentPosition);
 	someParticleEmitter->RenderRectangle.x = screenCoordinates.x - someParticle.ParticleSize * 0.5f;

@@ -33,6 +33,11 @@ namespace Core
             return *m_resourceManager;
         }
 
+        const std::vector<Scene::GameObject*>& GetGameObjectsInScene()
+        {
+            return m_gameObjectsInScene;
+        }
+
         void DeleteGameObject(Scene::GameObject* someGameObject);
         inline void UnTrackGameObject(Scene::GameObject* someGameObject);
         void GarbageCollect();
@@ -41,9 +46,6 @@ namespace Core
         {
             return m_sceneEndTriggered;
         }
-
-#ifdef _DEBUG
-#endif
 
         template<typename T>
         void AddComponentToEntity(Scene::GameObject& someGameObject, const std::uint32_t someEntityID)
@@ -93,15 +95,15 @@ namespace Core
 
     protected:
         virtual void InitializeGameObjectReferences(){}
-#ifdef _DEBUG
-        virtual void UpdateImGuiDebugs();
-#endif
 
     private:
         Scene::GameObject* SearchGameObjectByType(const type_info &typeInfo, std::vector<Scene::GameObject*>& someList);
         void InitializeGameObject(Scene::GameObject* someGameObject);
         void RegisterComponents();
         void CleanupScene();
+
+    public:
+        bool m_sceneIsPaused = false;
 
     protected:
         float m_sceneBoundsRadius;

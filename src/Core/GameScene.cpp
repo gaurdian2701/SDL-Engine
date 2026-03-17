@@ -1,13 +1,12 @@
 ﻿#include "Core/GameScene.h"
 #include <filesystem>
-#include "Assets/Components/ParticleEmitter.h"
+#include "Components/ParticleEmitter.h"
 #include "Scene/GameObject.h"
-#include "Assets/Components/Transform.h"
-#include "Assets/Components/Renderer2D.h"
+#include "Components/Transform.h"
+#include "Components/Renderer2D.h"
 #include "imgui.h"
-#include "../../../include/EmptyApp.h"
-#include "Assets/Components/Collider2D.h"
-#include "Assets/Components/UITexture.h"
+#include "Components/AABB2D.h"
+#include "Components/UITexture.h"
 #include "Core/HelperFunctions.h"
 #include "Core/CoreSystems/ResourceManager.h"
 #include "Scene/SceneManager.h"
@@ -32,11 +31,11 @@ void Core::GameScene::InitializeScene()
 
 void Core::GameScene::RegisterComponents()
 {
-	ECS::ECSManager::GetInstance().RegisterComponent<Assets::Components::Transform>();
-	ECS::ECSManager::GetInstance().RegisterComponent<Assets::Components::Renderer2D>();
-	ECS::ECSManager::GetInstance().RegisterComponent<Assets::Components::ParticleEmitter>();
-	ECS::ECSManager::GetInstance().RegisterComponent<Assets::Components::Collider2D>();
-	ECS::ECSManager::GetInstance().RegisterComponent<Assets::Components::UITexture>();
+	ECS::ECSManager::GetInstance().RegisterComponent<Components::Transform>();
+	ECS::ECSManager::GetInstance().RegisterComponent<Components::Renderer2D>();
+	ECS::ECSManager::GetInstance().RegisterComponent<Components::ParticleEmitter>();
+	ECS::ECSManager::GetInstance().RegisterComponent<Components::AABB2D>();
+	ECS::ECSManager::GetInstance().RegisterComponent<Components::UITexture>();
 }
 
 void Core::GameScene::InitializeGameObject(Scene::GameObject *someGameObject)
@@ -101,6 +100,19 @@ void Core::GameScene::Update(const float deltaTime)
 		m_startQueue.clear();
 	}
 
+#ifdef _DEBUG
+	if (!m_sceneIsPaused)
+	{
+		for (auto gameObject: m_gameObjectsInScene)
+		{
+			gameObject->UpdateObject(deltaTime);
+		}
+	}
+
+	//Update ECS Manager
+	ECS::ECSManager::GetInstance().DebugUpdateManager(deltaTime, m_sceneIsPaused);
+
+#else
 	//Update GameObjects
 	for (auto gameObject: m_gameObjectsInScene)
 	{
@@ -109,9 +121,6 @@ void Core::GameScene::Update(const float deltaTime)
 
 	//Update ECS Manager
 	ECS::ECSManager::GetInstance().UpdateManager(deltaTime);
-
-#ifdef _DEBUG
-	UpdateImGuiDebugs();
 #endif
 
 	GarbageCollect();
@@ -177,13 +186,14 @@ void Core::GameScene::DeleteGameObject(Scene::GameObject *someGameObject)
 		someGameObject->m_sceneReference = nullptr;
 
 		auto gameObjectIterator = std::find_if(m_gameObjectsInScene.begin(), m_gameObjectsInScene.end(),
-		                                       [&](Scene::GameObject *gameObjectInList)
-		                                       {
-			                                       if (gameObjectInList == someGameObject) {
-				                                       return true;
-			                                       }
-			                                       return false;
-		                                       });
+		[&](Scene::GameObject *gameObjectInList)
+		{
+			if (gameObjectInList == someGameObject)
+			{
+				return true;
+			}
+			return false;
+		});
 
 		if (gameObjectIterator != m_gameObjectsInScene.end()) {
 			*gameObjectIterator = nullptr;
@@ -226,36 +236,6 @@ void Core::GameScene::CleanupScene()
 	m_resourceManager->ClearData();
 	ECS::ECSManager::GetInstance().CleanupManager();
 }
-
-#ifdef _DEBUG
-void Core::GameScene::UpdateImGuiDebugs()
-{
-	ImGui::Begin("Debug");
-	ImGui::Text("FRAME RATE:");
-	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)\n",
-	            1000.0f / ImGui::GetIO().Framerate,
-	            ImGui::GetIO().Framerate);
-	ImGui::Separator();
-	ImGui::Text("Number of Entities: %i\n", m_gameObjectsInScene.size());
-	ImGui::Separator();
-	ImGui::Text("CHANGEABLE DEBUGS: ");
-
-	for (auto &gameObject: m_gameObjectsInScene) {
-		Assets::Components::Transform *transform = gameObject->GetComponent<Assets::Components::Transform>();
-
-		if (transform != nullptr) {
-			ImGui::PushID(gameObject->m_entityID);
-			ImGui::Text(gameObject->m_name.c_str());
-			ImGui::DragFloat2("Position", &transform->LocalPosition.x, 0.5f, -100.0f, 100.0f);
-			ImGui::DragFloat2("Scale", &transform->LocalScale.x, 0.5f, -100.0f, 100.0f);
-			ImGui::DragFloat("Rotation", &transform->LocalRotation, 0.5f, -100.0f, 100.0f);
-			ImGui::Separator();
-			ImGui::PopID();
-		}
-	}
-	ImGui::End();
-}
-#endif
 
 void Core::GameScene::SetupForEnd()
 {

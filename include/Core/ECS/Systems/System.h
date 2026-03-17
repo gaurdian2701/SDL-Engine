@@ -29,6 +29,9 @@ namespace Core::ECS
 		}
 
 	protected:
+#ifdef _DEBUG
+		bool m_shouldRunOnlyWhilePlaying = false;
+#endif
 		std::bitset<MAX_COMPONENT_TYPES> m_systemBitSet = std::bitset<MAX_COMPONENT_TYPES>();
 		std::set<uint32_t> m_initializationQueue = std::set<uint32_t>();
 		friend class ECSManager;

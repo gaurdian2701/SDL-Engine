@@ -3,7 +3,7 @@
 
 #include "System.h"
 
-namespace Assets::Components
+namespace Components
 {
 	struct Particle;
 	struct ParticleEmitter;
@@ -24,8 +24,8 @@ namespace Core::ECS::Systems
 		void EndSystem() override{}
 
 	private:
-		inline void RenderParticle(Assets::Components::ParticleEmitter* someParticleEmitter,
-			Assets::Components::Particle& someParticle);
+		inline void RenderParticle(Components::ParticleEmitter* someParticleEmitter,
+			Components::Particle& someParticle);
 
 	private:
 		std::default_random_engine m_randomOffsetGenerator;

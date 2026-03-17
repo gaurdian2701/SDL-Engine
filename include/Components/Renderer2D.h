@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "SDL3/SDL_render.h"
 
-namespace Assets::Components
+namespace Components
 {
     struct Renderer2D
     {

@@ -4,10 +4,9 @@
 #include <vector>
 #include <bitset>
 #include <iostream>
-#include "Components/ComponentFactory.h"
+#include "ComponentFactory.h"
 #include "SparseSet/SparseSet.h"
 #include "ECSData.h"
-#include "Systems/ParticleSystem.h"
 #include "Systems/System.h"
 
 namespace Core::ECS
@@ -31,6 +30,9 @@ namespace Core::ECS
         void InitializeManager(uint32_t someMaxEntities);
         void BeginSystems();
         void UpdateManager(const float deltaTime);
+#ifdef  _DEBUG
+        void DebugUpdateManager(const float deltaTime, bool scenePaused);
+#endif
         void CleanupManager();
 
         std::vector<void(*)(ECSManager &, const std::uint32_t)>& GetComponentRemovalHandlesArray();
@@ -71,7 +73,7 @@ namespace Core::ECS
             m_entityBitSetMap[someEntityID].set(GetGeneratedComponentTypeIndex<T>(*this), true);
             std::bitset<MAX_COMPONENT_TYPES> componentsBitSetForEntity = m_entityBitSetMap[someEntityID];
 
-            for (auto system : m_SystemsList)
+            for (auto system : m_systemsList)
             {
                 if ((componentsBitSetForEntity & system->m_systemBitSet) == system->m_systemBitSet)
                 {
@@ -252,7 +254,7 @@ namespace Core::ECS
     private:
         std::uint32_t m_maxEntities = 0;
 
-        std::vector<System*> m_SystemsList;
+        std::vector<System*> m_systemsList;
         std::vector<std::uint32_t> m_entityFreeList;
         std::vector<void(*)(ECSManager&, const std::uint32_t)> m_componentRemovalHandles;
 
@@ -260,6 +262,6 @@ namespace Core::ECS
 
         std::unordered_map<std::type_index, ISparseSet*> m_componentPoolMap;
         std::unordered_map<uint32_t, std::bitset<MAX_COMPONENT_TYPES>> m_entityBitSetMap = std::unordered_map<uint32_t, std::bitset<MAX_COMPONENT_TYPES>>();
-        Components::ComponentFactory m_componentFactory;
+        ComponentFactory m_componentFactory;
     };
 }

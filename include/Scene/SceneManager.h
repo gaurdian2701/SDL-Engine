@@ -13,6 +13,7 @@ namespace Scene
 		Core::GameScene* CreateScene()
 		{
 			Core::GameScene* gameScene = new SceneType(numberOfEntities);
+			MakeSceneCurrent(gameScene);
 			return gameScene;
 		}
 
