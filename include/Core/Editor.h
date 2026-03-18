@@ -1,0 +1,21 @@
+﻿#pragma once
+#include <cstdint>
+#include "imgui.h"
+#include "Core/ECS/ECSData.h"
+
+namespace Core
+{
+    class Editor
+    {
+    public:
+        Editor() = default;
+        ~Editor() = default;
+
+        virtual void Update(const float deltaTime);
+
+    protected:
+        std::uint32_t m_draggedEntity = INVALID_ENTITY_ID;
+        bool m_isDragging = false;
+        ImVec2 m_dragOffset = ImVec2(0.f, 0.f);
+    };
+}

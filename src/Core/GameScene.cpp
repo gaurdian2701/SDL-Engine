@@ -6,6 +6,8 @@
 #include "Components/Renderer2D.h"
 #include "imgui.h"
 #include "Components/AABB2D.h"
+#include "Components/CircleCollider2D.h"
+#include "Components/Rigidbody2D.h"
 #include "Components/UITexture.h"
 #include "Core/HelperFunctions.h"
 #include "Core/CoreSystems/ResourceManager.h"
@@ -31,11 +33,13 @@ void Core::GameScene::InitializeScene()
 
 void Core::GameScene::RegisterComponents()
 {
-	ECS::ECSManager::GetInstance().RegisterComponent<Components::Transform>();
-	ECS::ECSManager::GetInstance().RegisterComponent<Components::Renderer2D>();
-	ECS::ECSManager::GetInstance().RegisterComponent<Components::ParticleEmitter>();
-	ECS::ECSManager::GetInstance().RegisterComponent<Components::AABB2D>();
-	ECS::ECSManager::GetInstance().RegisterComponent<Components::UITexture>();
+	GetECSManager().RegisterComponent<Components::Transform>();
+	GetECSManager().RegisterComponent<Components::Renderer2D>();
+	GetECSManager().RegisterComponent<Components::ParticleEmitter>();
+	GetECSManager().RegisterComponent<Components::AABB2D>();
+	GetECSManager().RegisterComponent<Components::CircleCollider2D>();
+	GetECSManager().RegisterComponent<Components::Rigidbody2D>();
+	GetECSManager().RegisterComponent<Components::UITexture>();
 }
 
 void Core::GameScene::InitializeGameObject(Scene::GameObject *someGameObject)

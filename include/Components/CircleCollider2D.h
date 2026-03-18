@@ -4,7 +4,6 @@ namespace Components
 {
     struct CircleCollider2D
     {
-    public:
         CircleCollider2D() = default;
         ~CircleCollider2D() = default;
 
@@ -46,5 +45,8 @@ namespace Components
         }
 
         float Radius = 1.0f;
+#ifdef _DEBUG
+        bool IsColliding = false;
+#endif
     };
 }

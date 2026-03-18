@@ -21,7 +21,7 @@ void Core::ECS::Systems::RenderingSystem::UpdateSystem(const float deltaTime)
 	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::Renderer2D>(
 		[&](const Components::Transform* transform, Components::Renderer2D* renderer2D)
 		{
-			glm::vec2 screenCoordinates = ConvertToScreenCoordinates(transform->WorldPosition);
+			glm::vec2 screenCoordinates = WorldToScreen(transform->WorldPosition);
 			renderer2D->RenderRectangle.x = screenCoordinates.x - transform->WorldScale.x / 2;
 			renderer2D->RenderRectangle.y = screenCoordinates.y - transform->WorldScale.y / 2;
 			renderer2D->RenderRectangle.w = transform->WorldScale.x;
@@ -44,7 +44,7 @@ void Core::ECS::Systems::RenderingSystem::UpdateSystem(const float deltaTime)
 	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::UITexture>(
 	[&](const Components::Transform* transform, Components::UITexture* uiTexture)
 	{
-		glm::vec2 screenCoordinates = ConvertToScreenCoordinates(transform->WorldPosition);
+		glm::vec2 screenCoordinates = WorldToScreen(transform->WorldPosition);
 		uiTexture->RenderRectangle.x = screenCoordinates.x - transform->WorldScale.x / 2;
 		uiTexture->RenderRectangle.y = screenCoordinates.y - transform->WorldScale.y / 2;
 		uiTexture->RenderRectangle.w = transform->WorldScale.x;

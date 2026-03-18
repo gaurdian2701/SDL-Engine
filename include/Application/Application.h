@@ -2,6 +2,11 @@
 #include "SDL3/SDL_render.h"
 #include "SDL3/SDL_video.h"
 
+namespace Core
+{
+	class Editor;
+}
+
 namespace Scene
 {
 	class SceneManager;
@@ -54,6 +59,9 @@ public:
 protected:
 	SDL_Window* m_mainWindow = nullptr;
 	SDL_Renderer* m_mainRenderer = nullptr;
+#ifdef _DEBUG
+	Core::Editor* m_editor = nullptr;
+#endif
 	bool m_isRunning = true;
 
 private:

@@ -86,7 +86,7 @@ void Core::ECS::Systems::ParticleSystem::UpdateSystem(const float deltaTime)
 inline void Core::ECS::Systems::ParticleSystem::RenderParticle(Components::ParticleEmitter *someParticleEmitter,
                                                                Components::Particle &someParticle)
 {
-	glm::vec2 screenCoordinates = ConvertToScreenCoordinates(someParticle.CurrentPosition);
+	glm::vec2 screenCoordinates = WorldToScreen(someParticle.CurrentPosition);
 	someParticleEmitter->RenderRectangle.x = screenCoordinates.x - someParticle.ParticleSize * 0.5f;
 	someParticleEmitter->RenderRectangle.y = screenCoordinates.y - someParticle.ParticleSize * 0.5f;
 	someParticleEmitter->RenderRectangle.w = someParticle.ParticleSize;

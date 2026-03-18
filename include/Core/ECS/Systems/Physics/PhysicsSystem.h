@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "System.h"
+#include "../System.h"
 
 namespace Core::ECS::Systems
 {
@@ -11,6 +11,7 @@ namespace Core::ECS::Systems
 
 		void RegisterInterestedComponents() override;
 		void ProcessInitializationQueue() override{}
+		void BeginSystem() override;
 		void UpdateSystem(const float deltaTime) override;
 	};
 }

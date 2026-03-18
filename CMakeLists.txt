@@ -32,9 +32,14 @@ add_library(
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/CoreSystems/InputSystem.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/ParticleSystem.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/TransformSolverSystem.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/PhysicsSystem.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/SceneManager.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/DebugEditorSystem.cpp)
+        src/Core/ECS/Systems/Physics/PhysicsSystem.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/SceneManager.cpp
+        include/Core/ECS/Systems/Physics/CollisionChecks.h
+        include/Core/ECS/Systems/Debug/DebugDrawSystem.h
+        src/Core/ECS/Systems/Debug/DebugDrawSystem.cpp
+        include/Core/Editor.h
+        src/Core/Editor.cpp
+)
 
 EnableASANCompileOptions(${ENGINE_BINARY_NAME})
 

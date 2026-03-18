@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <cstdint>
 #include "Core/GameScene.h"
+#include "Core/Editor.h"
 
 namespace Scene
 {
@@ -66,5 +67,6 @@ namespace Scene
         std::bitset<Core::MAX_COMPONENT_TYPES> m_componentBitSet;
 
         friend class Core::GameScene;
+        friend class Core::Editor;
     };
 }

@@ -38,6 +38,11 @@ namespace Core
             return m_gameObjectsInScene;
         }
 
+        unsigned long long GetGameObjectCount()
+        {
+            return m_gameObjectsInScene.size();
+        }
+
         void DeleteGameObject(Scene::GameObject* someGameObject);
         inline void UnTrackGameObject(Scene::GameObject* someGameObject);
         void GarbageCollect();

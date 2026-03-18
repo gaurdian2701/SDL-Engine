@@ -4,6 +4,7 @@
 #include <iostream>
 #include <SDL3/SDL_init.h>
 #include "PrintDebug.h"
+#include "Core/Editor.h"
 #include "Core/CoreSystems/CoreSystemsHolder.h"
 #include "Scene/SceneManager.h"
 #include "SDL3_ttf/SDL_ttf.h"
@@ -15,7 +16,7 @@
 #endif
 
 static Application* CoreApplicationInstance = nullptr;
-const char* WINDOW_NAME = "Asteroids";
+const char* WINDOW_NAME = "SDL-Physics";
 
 Application::Application()
 {
@@ -79,6 +80,10 @@ void Application::Init()
     {
         system->Initialize();
     }
+
+#ifdef _DEBUG
+    m_editor = new Core::Editor();
+#endif
 }
 
 void Application::InitiateShutdown()
@@ -120,6 +125,7 @@ void Application::Run()
         GetApplicationInstance()->UpdateApplication(deltaTime);
 
 #ifdef _DEBUG
+        m_editor->Update(deltaTime);
         PresentImGuiFrame();
 #endif
 
