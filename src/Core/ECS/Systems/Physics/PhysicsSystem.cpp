@@ -1,5 +1,6 @@
 ﻿#include "Core/ECS/Systems/Physics/PhysicsSystem.h"
 #include "Components/AABB2D.h"
+#include "Components/CircleCollider2D.h"
 #include "Components/Transform.h"
 #include "Core/ECS/ECSManager.h"
 #include "Core/ECS/Systems/Physics/CollisionChecks.h"
@@ -22,6 +23,12 @@ void Core::ECS::Systems::PhysicsSystem::UpdateSystem(const float deltaTime)
             box->IsColliding = false;
         });
 
+    ECSManager::GetInstance().ForEachUsingComponents<Components::CircleCollider2D>(
+    [&](Components::CircleCollider2D* circleCollider)
+        {
+            circleCollider->IsColliding = false;
+        });
+
     ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::AABB2D>(
         [&](Components::Transform* firstTransform, Components::AABB2D* firstBox)
         {
@@ -35,13 +42,30 @@ void Core::ECS::Systems::PhysicsSystem::UpdateSystem(const float deltaTime)
                                        *firstBox,
                                        *secondBox))
                         {
-                            PrintDebug("%s\n", "Colliding");
-                            #ifdef _DEBUG
                             firstBox->IsColliding = true;
                             secondBox->IsColliding = true;
-                            #endif
                         }
                     }
                 });
         });
+
+    ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::CircleCollider2D>(
+    [&](Components::Transform* firstTransform, Components::CircleCollider2D* firstCircle)
+    {
+        ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::CircleCollider2D>(
+            [&](Components::Transform* secondTransform, Components::CircleCollider2D* secondCircle)
+            {
+                if (firstCircle != secondCircle)
+                {
+                    if (CirclevsCircle(firstTransform->WorldPosition,
+                                   secondTransform->WorldPosition,
+                                   *firstCircle,
+                                   *secondCircle))
+                    {
+                        firstCircle->IsColliding = true;
+                        secondCircle->IsColliding = true;
+                    }
+                }
+            });
+    });
 }

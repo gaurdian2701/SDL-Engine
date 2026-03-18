@@ -44,8 +44,6 @@ namespace Components
 		}
 
 		glm::vec2 HalfExtents = glm::vec2(0.0f);
-#ifdef _DEBUG
 		bool IsColliding = false;
-#endif
 	};
 }

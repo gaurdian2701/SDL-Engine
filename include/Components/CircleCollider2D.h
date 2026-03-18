@@ -45,8 +45,6 @@ namespace Components
         }
 
         float Radius = 1.0f;
-#ifdef _DEBUG
         bool IsColliding = false;
-#endif
     };
 }
