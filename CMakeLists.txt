@@ -39,6 +39,12 @@ add_library(
         src/Core/ECS/Systems/Debug/DebugDrawSystem.cpp
         include/Core/Editor.h
         src/Core/Editor.cpp
+        include/Core/ECS/Systems/Physics/CollisionData.h
+        include/Core/ECS/Systems/Physics/BroadPhase.h
+        include/Components/AABB2D.h
+        include/Components/CircleCollider2D.h
+        include/Core/ECS/Systems/Physics/NarrowPhase.h
+        src/Core/ECS/Systems/Physics/NarrowPhase.cpp
 )
 
 EnableASANCompileOptions(${ENGINE_BINARY_NAME})

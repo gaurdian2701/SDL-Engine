@@ -24,7 +24,6 @@ namespace Core::ECS
 		T CreateComponent()
 		{
 			std::any* storedComponent = &m_componentMap[typeid(T)];
-			assert(storedComponent != nullptr);
 			return std::any_cast<T>(*storedComponent);
 		}
 

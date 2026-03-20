@@ -26,9 +26,9 @@ void Core::ECS::ECSManager::InitializeManager(uint32_t someMaxEntities)
 
 void Core::ECS::ECSManager::CreateSystems()
 {
+	m_systemsList.push_back(new Systems::PhysicsSystem());
 	m_systemsList.push_back(new Systems::TransformSolverSystem());
 	m_systemsList.push_back(new Systems::ParticleSystem());
-	m_systemsList.push_back(new Systems::PhysicsSystem());
 	m_systemsList.push_back(new Systems::RenderingSystem());
 #ifdef _DEBUG
 	m_systemsList.push_back(new Systems::DebugDrawSystem());

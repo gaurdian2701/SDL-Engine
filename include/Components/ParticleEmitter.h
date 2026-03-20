@@ -13,52 +13,9 @@ namespace Components
 	struct Particle
 	{
 		Particle() = default;
-		~Particle()
-		{
-
-		}
-		//Copy Constructor
-		Particle(const Particle& other)
-		{
-			CurrentPosition = other.CurrentPosition;
-			CurrentLifeTime = other.CurrentLifeTime;
-			ParticleSize = other.ParticleSize;
-		}
-
-		//Move Constructor
-		Particle(Particle&& other) noexcept
-		{
-			CurrentPosition = other.CurrentPosition;
-			CurrentLifeTime = other.CurrentLifeTime;
-			ParticleSize = other.ParticleSize;
-		}
-
-		//Copy Assignment Operator
-		Particle& operator=(const Particle& other)
-		{
-			if (this != &other)
-			{
-				CurrentPosition = other.CurrentPosition;
-				CurrentLifeTime = other.CurrentLifeTime;
-				ParticleSize = other.ParticleSize;
-			}
-			return *this;
-		}
-
-		//Move Assignment operator
-		Particle& operator=(Particle&& other) noexcept
-		{
-			if (this != &other)
-			{
-				CurrentPosition = other.CurrentPosition;
-				CurrentLifeTime = other.CurrentLifeTime;
-				ParticleSize = other.ParticleSize;
-			}
-			return *this;
-		}
+		~Particle() = default;
 
 		glm::vec2 CurrentPosition = glm::vec2(0.0f);
-
 		float CurrentLifeTime = 0.0f;
 		float ParticleSize = 0.0f;
 	};
@@ -100,7 +57,6 @@ namespace Components
 			StartingOffset = other.StartingOffset;
 			MaxDeviation = other.MaxDeviation;
 			ParticleLifetime = other.ParticleLifetime;
-			Owner = other.Owner;
 
 			Color = other.Color;
 			RenderRectangle = other.RenderRectangle;
@@ -114,7 +70,6 @@ namespace Components
 			StartingOffset = other.StartingOffset;
 			MaxDeviation = other.MaxDeviation;
 			ParticleLifetime = other.ParticleLifetime;
-			Owner = other.Owner;
 
 			Color = other.Color;
 			RenderRectangle = other.RenderRectangle;
@@ -133,7 +88,6 @@ namespace Components
 				StartingOffset = other.StartingOffset;
 				MaxDeviation = other.MaxDeviation;
 				ParticleLifetime = other.ParticleLifetime;
-				Owner = other.Owner;
 
 				Color = other.Color;
 				RenderRectangle = other.RenderRectangle;
@@ -151,7 +105,6 @@ namespace Components
 				StartingOffset = other.StartingOffset;
 				MaxDeviation = other.MaxDeviation;
 				ParticleLifetime = other.ParticleLifetime;
-				Owner = other.Owner;
 
 				Color = other.Color;
 				RenderRectangle = other.RenderRectangle;
@@ -177,7 +130,6 @@ namespace Components
 		SDL_FRect RenderRectangle = SDL_FRect(0, 0, 5, 5);
 		SDL_Texture* RenderTexture = nullptr;
 
-		Scene::GameObject* Owner = nullptr;
 		std::vector<Particle> Particles = std::vector<Particle>(5);
 	};
 }

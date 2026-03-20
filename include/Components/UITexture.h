@@ -16,46 +16,6 @@ namespace Components
 			RenderTexture = nullptr;
 		}
 
-		//Copy Constructor
-		UITexture(const UITexture& other)
-		{
-			RenderRectangle = other.RenderRectangle;
-			RenderTexture = other.RenderTexture;
-			TextFont = other.TextFont;
-		}
-
-		//Move Constructor
-		UITexture(UITexture&& other) noexcept
-		{
-			RenderRectangle = other.RenderRectangle;
-			RenderTexture = other.RenderTexture;
-			TextFont = other.TextFont;
-		}
-
-		//Copy Assignment Operator
-		UITexture& operator=(const UITexture& other)
-		{
-			if (this != &other)
-			{
-				RenderRectangle = other.RenderRectangle;
-				RenderTexture = other.RenderTexture;
-				TextFont = other.TextFont;
-			}
-			return *this;
-		}
-
-		//Move Assignment Operator
-		UITexture& operator=(UITexture&& other) noexcept
-		{
-			if (this != &other)
-			{
-				RenderRectangle = other.RenderRectangle;
-				RenderTexture = other.RenderTexture;
-				TextFont = other.TextFont;
-			}
-			return *this;
-		}
-
 		void SetFontText(const std::string& someText, SDL_Color&& someColor)
 		{
 			SDL_Surface* surface = TTF_RenderText_Solid(TextFont, someText.c_str(), 0, someColor);

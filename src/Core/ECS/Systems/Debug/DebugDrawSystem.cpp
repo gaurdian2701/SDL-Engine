@@ -7,7 +7,8 @@
 
 void Core::ECS::Systems::DebugDrawSystem::RegisterInterestedComponents()
 {
-    ECSManager::GetInstance().RegisterInterestedComponentsForSystem<Components::Transform, Components::AABB2D, Components::CircleCollider2D>(this);
+    ECSManager::GetInstance().RegisterInterestedComponentsForSystem<Components::Transform,
+    Components::AABB2D, Components::CircleCollider2D>(this);
 }
 
 void Core::ECS::Systems::DebugDrawSystem::UpdateSystem(const float deltaTime)

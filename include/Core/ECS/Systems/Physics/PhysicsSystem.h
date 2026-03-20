@@ -1,6 +1,11 @@
 ﻿#pragma once
 #include "../System.h"
 
+namespace Core::ECS::Systems::Physics
+{
+	class NarrowPhase;
+}
+
 namespace Core::ECS::Systems
 {
 	class PhysicsSystem : public System
@@ -13,5 +18,8 @@ namespace Core::ECS::Systems
 		void ProcessInitializationQueue() override{}
 		void BeginSystem() override;
 		void UpdateSystem(const float deltaTime) override;
+
+	private:
+		Physics::NarrowPhase* m_narrowPhase = nullptr;
 	};
 }
