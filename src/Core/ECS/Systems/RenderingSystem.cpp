@@ -21,11 +21,11 @@ void Core::ECS::Systems::RenderingSystem::UpdateSystem(const float deltaTime)
 	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::Renderer2D>(
 		[&](const Components::Transform* transform, Components::Renderer2D* renderer2D)
 		{
-			glm::vec2 screenCoordinates = WorldToScreen(transform->WorldPosition);
-			renderer2D->RenderRectangle.x = screenCoordinates.x - transform->WorldScale.x / 2;
-			renderer2D->RenderRectangle.y = screenCoordinates.y - transform->WorldScale.y / 2;
-			renderer2D->RenderRectangle.w = transform->WorldScale.x;
-			renderer2D->RenderRectangle.h = transform->WorldScale.y;
+			glm::vec2 screenCoordinates = WorldToScreen(transform->Position);
+			renderer2D->RenderRectangle.x = screenCoordinates.x - transform->Scale.x / 2;
+			renderer2D->RenderRectangle.y = screenCoordinates.y - transform->Scale.y / 2;
+			renderer2D->RenderRectangle.w = transform->Scale.x;
+			renderer2D->RenderRectangle.h = transform->Scale.y;
 
 			SDL_SetTextureColorMod(renderer2D->RenderTexture,
 				renderer2D->Color.r,
@@ -37,22 +37,22 @@ void Core::ECS::Systems::RenderingSystem::UpdateSystem(const float deltaTime)
 
 			SDL_RenderTextureRotated(Application::GetCoreInstance().GetMainRenderer(),
 			                         renderer2D->RenderTexture, nullptr, &renderer2D->RenderRectangle,
-			                         -glm::degrees(transform->WorldRotation), nullptr, SDL_FLIP_NONE);
+			                         -glm::degrees(transform->Rotation), nullptr, SDL_FLIP_NONE);
 		});
 
 	//Render UI on top of sprites
 	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::UITexture>(
 	[&](const Components::Transform* transform, Components::UITexture* uiTexture)
 	{
-		glm::vec2 screenCoordinates = WorldToScreen(transform->WorldPosition);
-		uiTexture->RenderRectangle.x = screenCoordinates.x - transform->WorldScale.x / 2;
-		uiTexture->RenderRectangle.y = screenCoordinates.y - transform->WorldScale.y / 2;
-		uiTexture->RenderRectangle.w = transform->WorldScale.x;
-		uiTexture->RenderRectangle.h = transform->WorldScale.y;
+		glm::vec2 screenCoordinates = WorldToScreen(transform->Position);
+		uiTexture->RenderRectangle.x = screenCoordinates.x - transform->Scale.x / 2;
+		uiTexture->RenderRectangle.y = screenCoordinates.y - transform->Scale.y / 2;
+		uiTexture->RenderRectangle.w = transform->Scale.x;
+		uiTexture->RenderRectangle.h = transform->Scale.y;
 
 		SDL_RenderTextureRotated(Application::GetCoreInstance().GetMainRenderer(),
 								 uiTexture->RenderTexture, nullptr, &uiTexture->RenderRectangle,
-								 -glm::degrees(transform->WorldRotation), nullptr, SDL_FLIP_NONE);
+								 -glm::degrees(transform->Rotation), nullptr, SDL_FLIP_NONE);
 	});
 }
 

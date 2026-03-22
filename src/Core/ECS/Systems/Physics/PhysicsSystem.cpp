@@ -1,5 +1,5 @@
 ﻿#include "Core/ECS/Systems/Physics/PhysicsSystem.h"
-#include "Components/AABB2D.h"
+#include "Components/BoxCollider2D.h"
 #include "Components/Transform.h"
 #include "Core/ECS/ECSManager.h"
 #include "Core/ECS/Systems/Physics/NarrowPhase.h"
@@ -7,7 +7,7 @@
 void Core::ECS::Systems::PhysicsSystem::RegisterInterestedComponents()
 {
     ECSManager::GetInstance().RegisterInterestedComponentsForSystem
-        <Components::Transform, Components::AABB2D>(this);
+        <Components::Transform, Components::BoxCollider2D>(this);
 }
 
 void Core::ECS::Systems::PhysicsSystem::BeginSystem()

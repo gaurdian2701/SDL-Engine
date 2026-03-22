@@ -9,26 +9,47 @@ namespace Components
     {
         //Default Constructor
         Transform() = default;
+        ~Transform() = default;
 
-        ~Transform()
+        const glm::vec2& GetUpVector()
         {
-            ParentEntity = Core::INVALID_ENTITY_ID;
+            if (m_rotationDirtyByte)
+            {
+                m_up = glm::vec2(-std::sin(Rotation), std::cos(Rotation));
+                m_rotationDirtyByte = false;
+            }
+            return m_up;
         }
 
-        void SetParent(Scene::GameObject* parent)
+        const glm::vec2& GetRightVector()
         {
-            ParentEntity = parent->GetEntityID();
+            if (m_rotationDirtyByte)
+            {
+                m_right = glm::vec2(std::cos(Rotation), std::sin(Rotation));
+                m_rotationDirtyByte = false;
+            }
+            return m_right;
         }
 
-        glm::vec2 WorldPosition = glm::vec2(0.0f);
-        glm::vec2 WorldScale = glm::vec2(1.0f);
-        glm::vec2 LocalPosition = glm::vec2(0.0f);
-        glm::vec2 LocalScale = glm::vec2(1.0f);
-        glm::vec2 Up = glm::vec2(0.0f);
-        glm::vec2 Right = glm::vec2(0.0f);
+        void SetLocalRotation(float radians)
+        {
+            if (radians - Rotation > 0.001f)
+            {
+                m_rotationDirtyByte = true;
+            }
 
-        float LocalRotation = 0.0f;
-        float WorldRotation = 0.0f;
-        std::uint32_t ParentEntity = Core::INVALID_ENTITY_ID;
+            Rotation = radians;
+        }
+
+    public:
+        glm::vec2 Position = glm::vec2(0.0f);
+        glm::vec2 Scale = glm::vec2(1.0f);
+        float Rotation = 0.0f;
+
+    private:
+        glm::vec2 m_up = glm::vec2(0.0f);
+        glm::vec2 m_right = glm::vec2(0.0f);
+
+        bool m_rotationDirtyByte = false;
     };
 }

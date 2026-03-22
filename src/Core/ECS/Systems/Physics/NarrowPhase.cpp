@@ -1,6 +1,6 @@
 ﻿#include "Core/ECS/Systems/Physics/NarrowPhase.h"
 #include "Core/ECS/ECSManager.h"
-#include "Components/AABB2D.h"
+#include "Components/BoxCollider2D.h"
 #include "Components/CircleCollider2D.h"
 #include "Components/Transform.h"
 #include "Core/ECS/Systems/Physics/CollisionChecks.h"
@@ -13,9 +13,11 @@ void Core::ECS::Systems::Physics::NarrowPhase::DoNarrowPhase(const float deltaTi
 		circleCollider->IsColliding = false;
 	});
 
-	ECSManager::GetInstance().ForEachUsingComponents<Components::AABB2D>(
-		[&](Components::AABB2D *box)
+	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::BoxCollider2D>(
+		[&](const Components::Transform* transform, Components::BoxCollider2D *box)
 		{
+			box->SetCenter(transform->Position);
+			box->SetRotation(transform->Rotation);
 			box->IsColliding = false;
 		});
 
@@ -38,21 +40,21 @@ void Core::ECS::Systems::Physics::NarrowPhase::SolveCircleVsCircle()
 			auto secondCircle = ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(*iterator2);
 			float radiusSum = firstCircle->Radius + secondCircle->Radius;
 
-			if (CirclevsCircle(firstTransform->WorldPosition,
-			secondTransform->WorldPosition,
+			if (CirclevsCircle(firstTransform->Position,
+			secondTransform->Position,
 			radiusSum))
 			{
 				firstCircle->IsColliding = true;
 				secondCircle->IsColliding = true;
 
 				//Resolve Circle Vs Circle
-				glm::vec2 directionVector = secondTransform->WorldPosition - firstTransform->WorldPosition;
+				glm::vec2 directionVector = secondTransform->Position - firstTransform->Position;
 				if (glm::length(directionVector) > 0.0f)
 				{
 					glm::vec2 normal = glm::normalize(directionVector);
-					float penetrationDepth = radiusSum - glm::distance(firstTransform->WorldPosition, secondTransform->WorldPosition);
-					firstTransform->LocalPosition += -penetrationDepth * 0.5f * normal;
-					secondTransform->LocalPosition += penetrationDepth * 0.5f * normal;
+					float penetrationDepth = radiusSum - glm::distance(firstTransform->Position, secondTransform->Position);
+					firstTransform->Position += -penetrationDepth * 0.5f * normal;
+					secondTransform->Position += penetrationDepth * 0.5f * normal;
 				}
 			}
 		}
@@ -61,22 +63,22 @@ void Core::ECS::Systems::Physics::NarrowPhase::SolveCircleVsCircle()
 
 void Core::ECS::Systems::Physics::NarrowPhase::SolveAABBVsAABB()
 {
-	auto [iterator1, view] = ECSManager::GetInstance().GetView<Components::Transform, Components::AABB2D>();
+	auto [iterator1, view] = ECSManager::GetInstance().GetView<Components::Transform, Components::BoxCollider2D>();
 
 	for (iterator1; iterator1 != view.end(); ++iterator1)
 	{
 		auto firstTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(*iterator1);
-		auto firstAABB = ECSManager::GetInstance().GetComponent<Components::AABB2D>(*iterator1);
+		auto firstAABB = ECSManager::GetInstance().GetComponent<Components::BoxCollider2D>(*iterator1);
 
 		for (auto iterator2 = iterator1+1; iterator2 != view.end(); ++iterator2)
 		{
 			auto secondTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(*iterator2);
-			auto secondAABB = ECSManager::GetInstance().GetComponent<Components::AABB2D>(*iterator2);
+			auto secondAABB = ECSManager::GetInstance().GetComponent<Components::BoxCollider2D>(*iterator2);
 
-			if (AABBvsAABB(firstTransform->WorldPosition,
-			secondTransform->WorldPosition,
-			firstAABB->HalfExtents,
-			secondAABB->HalfExtents))
+			if (AABBvsAABB(firstTransform->Position,
+			secondTransform->Position,
+			firstAABB->GetHalfExtents(),
+			secondAABB->GetHalfExtents()))
 			{
 				firstAABB->IsColliding = true;
 				secondAABB->IsColliding = true;

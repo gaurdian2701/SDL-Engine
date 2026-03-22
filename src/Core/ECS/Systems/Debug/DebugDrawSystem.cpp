@@ -1,5 +1,5 @@
 ﻿#include "Core/ECS/Systems/Debug/DebugDrawSystem.h"
-#include "Components/AABB2D.h"
+#include "Components/BoxCollider2D.h"
 #include "Components/CircleCollider2D.h"
 #include "Components/Transform.h"
 #include "Core/HelperFunctions.h"
@@ -8,24 +8,16 @@
 void Core::ECS::Systems::DebugDrawSystem::RegisterInterestedComponents()
 {
     ECSManager::GetInstance().RegisterInterestedComponentsForSystem<Components::Transform,
-    Components::AABB2D, Components::CircleCollider2D>(this);
+    Components::BoxCollider2D, Components::CircleCollider2D>(this);
 }
 
 void Core::ECS::Systems::DebugDrawSystem::UpdateSystem(const float deltaTime)
 {
-    SDL_FRect drawRect = SDL_FRect();
-
     //Draw AABB Colliders
-    ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::AABB2D>(
-        [&](const Components::Transform* transform, Components::AABB2D* aabb2D)
+    ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::BoxCollider2D>(
+        [&](const Components::Transform* transform, Components::BoxCollider2D* box2D)
         {
-            glm::vec2 screenCoordinates = WorldToScreen(transform->WorldPosition);
-            drawRect = SDL_FRect(screenCoordinates.x - aabb2D->HalfExtents.x,
-                screenCoordinates.y - aabb2D->HalfExtents.y,
-                aabb2D->HalfExtents.x * 2.0f,
-                aabb2D->HalfExtents.y * 2.0f);
-
-            if (aabb2D->IsColliding)
+            if (box2D->IsColliding)
             {
                 SDL_SetRenderDrawColor(Application::GetCoreInstance().GetMainRenderer(),
                     255, 0, 0, 255);
@@ -36,7 +28,10 @@ void Core::ECS::Systems::DebugDrawSystem::UpdateSystem(const float deltaTime)
                     0, 255, 0, 255);
             }
 
-            SDL_RenderRect(Application::GetCoreInstance().GetMainRenderer(), &drawRect);
+            DrawBox(box2D->GetTopLeftPoint(),
+                box2D->GetTopRightPoint(),
+                box2D->GetBottomRightPoint(),
+                box2D->GetBottomLeftPoint());
         });
 
     //Draw Circle Colliders
@@ -53,9 +48,29 @@ void Core::ECS::Systems::DebugDrawSystem::UpdateSystem(const float deltaTime)
                 SDL_SetRenderDrawColor(Application::GetCoreInstance().GetMainRenderer(),
                     0, 255, 0, 255);
             }
-            this->DrawHollowCircle(transform->WorldPosition, circleCollider->Radius);
+            this->DrawHollowCircle(transform->Position, circleCollider->Radius);
         });
 }
+
+void Core::ECS::Systems::DebugDrawSystem::DrawBox(const glm::vec2& topLeft,
+    const glm::vec2& topRight,
+    const glm::vec2& bottomRight,
+    const glm::vec2& bottomLeft) const
+{
+    glm::vec2 topLeftScreenCoordinates = WorldToScreen(topLeft);
+    glm::vec2 topRightScreenCoordinates = WorldToScreen(topRight);
+    glm::vec2 bottomRightScreenCoordinates = WorldToScreen(bottomRight);
+    glm::vec2 bottomLeftScreenCoordinates = WorldToScreen(bottomLeft);
+
+    m_boxDrawPoints[0] = SDL_FPoint(topLeftScreenCoordinates.x, topLeftScreenCoordinates.y);
+    m_boxDrawPoints[1] = SDL_FPoint(topRightScreenCoordinates.x, topRightScreenCoordinates.y);
+    m_boxDrawPoints[2] = SDL_FPoint(bottomRightScreenCoordinates.x, bottomRightScreenCoordinates.y);
+    m_boxDrawPoints[3] = SDL_FPoint(bottomLeftScreenCoordinates.x, bottomLeftScreenCoordinates.y);
+    m_boxDrawPoints[4] = m_boxDrawPoints[0];
+
+    SDL_RenderLines(Application::GetCoreInstance().GetMainRenderer(), m_boxDrawPoints, 5);
+}
+
 
 void Core::ECS::Systems::DebugDrawSystem::DrawCirclePoints(float xc, float yc, float x, float y)
 {
@@ -72,7 +87,7 @@ void Core::ECS::Systems::DebugDrawSystem::DrawCirclePoints(float xc, float yc, f
 }
 
 //Uses Bresenham's Circle Drawing Algorithm
-void Core::ECS::Systems::DebugDrawSystem::DrawHollowCircle(glm::vec2& worldPosition, float radius)
+void Core::ECS::Systems::DebugDrawSystem::DrawHollowCircle(const glm::vec2& worldPosition, float radius)
 {
     glm::vec2 screenPosition = WorldToScreen(worldPosition);
     int x = 0, y = radius;

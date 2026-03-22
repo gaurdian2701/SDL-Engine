@@ -29,7 +29,7 @@ void Core::ECS::Systems::ParticleSystem::ProcessInitializationQueue()
 			 //Simulation
 			 //Set particle's initial position according to the initial velocity.
 			 //The positions are relative to the particle emitter's world position
-			 particle.CurrentPosition = transform->WorldPosition + particleEmitter->StartingOffset +
+			 particle.CurrentPosition = transform->Position + particleEmitter->StartingOffset +
 			                            glm::vec2(randomDistribution(m_randomOffsetGenerator),
 			                                      randomDistribution(m_randomOffsetGenerator));
 
@@ -54,7 +54,7 @@ void Core::ECS::Systems::ParticleSystem::UpdateSystem(const float deltaTime)
 
 			if (particleEmitter->UseOwnerDirection)
 			{
-				particleVelocity = particleEmitter->ParticleSpeed * transform->Up;
+				particleVelocity = particleEmitter->ParticleSpeed * transform->GetUpVector();
 			}
 			else
 			{
@@ -68,7 +68,7 @@ void Core::ECS::Systems::ParticleSystem::UpdateSystem(const float deltaTime)
 
 				if (particle.CurrentLifeTime < 0.0f) {
 					//Reset particle position next to particle emitter
-					particle.CurrentPosition = transform->WorldPosition + particleEmitter->StartingOffset +
+					particle.CurrentPosition = transform->Position + particleEmitter->StartingOffset +
 					                           glm::vec2(randomDistribution(m_randomOffsetGenerator),
 					                                     randomDistribution(m_randomOffsetGenerator));
 

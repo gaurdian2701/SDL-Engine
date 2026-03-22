@@ -31,7 +31,6 @@ add_library(
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/CoreSystems/ResourceManager.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/CoreSystems/InputSystem.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/ParticleSystem.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/TransformSolverSystem.cpp
         src/Core/ECS/Systems/Physics/PhysicsSystem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/SceneManager.cpp
         include/Core/ECS/Systems/Physics/CollisionChecks.h
@@ -41,10 +40,11 @@ add_library(
         src/Core/Editor.cpp
         include/Core/ECS/Systems/Physics/CollisionData.h
         include/Core/ECS/Systems/Physics/BroadPhase.h
-        include/Components/AABB2D.h
+        include/Components/BoxCollider2D.h
         include/Components/CircleCollider2D.h
         include/Core/ECS/Systems/Physics/NarrowPhase.h
         src/Core/ECS/Systems/Physics/NarrowPhase.cpp
+        include/Core/MathHelpers.h
 )
 
 EnableASANCompileOptions(${ENGINE_BINARY_NAME})

@@ -1,17 +1,16 @@
 ﻿#pragma once
 #include "vec2.hpp"
 #include "Application/Application.h"
-#include "SDL3/SDL_render.h"
 
 namespace Core
 {
-    static inline glm::vec2 WorldToScreen(glm::vec2 someCartesianCoordinates)
+    static inline glm::vec2 WorldToScreen(const glm::vec2 someCartesianCoordinates)
     {
         return glm::vec2(someCartesianCoordinates.x + Application::SCREEN_WIDTH * 0.5f,
             Application::SCREEN_HEIGHT * 0.5f - someCartesianCoordinates.y);
     }
 
-    static inline glm::vec2 ScreenToWorld(glm::vec2 someScreenCoordinates)
+    static inline glm::vec2 ScreenToWorld(const glm::vec2 someScreenCoordinates)
     {
         return glm::vec2(someScreenCoordinates.x - Application::SCREEN_WIDTH * 0.5f,
             Application::SCREEN_HEIGHT * 0.5f - someScreenCoordinates.y);

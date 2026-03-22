@@ -36,14 +36,14 @@ void Core::Editor::Update(const float deltaTime)
                     if (auto transform = gameObject->GetComponent<Components::Transform>())
                     {
                         //Are we clicking within the bounds of the transform area?
-                        if (worldMousePos.x >= transform->LocalPosition.x - transform->LocalScale.x * 0.5f &&
-                            worldMousePos.x <= transform->LocalPosition.x + transform->LocalScale.x * 0.5f &&
-                            worldMousePos.y >= transform->LocalPosition.y - transform->LocalScale.y * 0.5f &&
-                            worldMousePos.y <= transform->LocalPosition.y + transform->LocalScale.y * 0.5f)
+                        if (worldMousePos.x >= transform->Position.x - transform->Scale.x * 0.5f &&
+                            worldMousePos.x <= transform->Position.x + transform->Scale.x * 0.5f &&
+                            worldMousePos.y >= transform->Position.y - transform->Scale.y * 0.5f &&
+                            worldMousePos.y <= transform->Position.y + transform->Scale.y * 0.5f)
                         {
                             m_draggedEntity = gameObject->m_entityID;
                             m_isDragging = true;
-                            m_dragOffset = ImVec2(worldMousePos.x - transform->LocalPosition.x, worldMousePos.y - transform->LocalPosition.y);
+                            m_dragOffset = ImVec2(worldMousePos.x - transform->Position.x, worldMousePos.y - transform->Position.y);
                         }
                     }
                 }
@@ -58,8 +58,8 @@ void Core::Editor::Update(const float deltaTime)
 
             if (draggedTransform)
             {
-                draggedTransform->LocalPosition.x = worldMousePos.x - m_dragOffset.x;
-                draggedTransform->LocalPosition.y = worldMousePos.y - m_dragOffset.y;
+                draggedTransform->Position.x = worldMousePos.x - m_dragOffset.x;
+                draggedTransform->Position.y = worldMousePos.y - m_dragOffset.y;
             }
         }
 
@@ -87,11 +87,12 @@ void Core::Editor::Update(const float deltaTime)
         {
             if (auto transform = gameObject->GetComponent<Components::Transform>())
             {
+                //Accept inputs
                 ImGui::PushID(gameObject->m_entityID);
                 ImGui::Text("%s", gameScene->GetGameObjectFromEntityID(gameObject->m_entityID)->m_name.c_str());
-                ImGui::DragFloat2("Position", &transform->LocalPosition.x, 0.5f, -100.0f, 100.0f);
-                ImGui::DragFloat2("Scale", &transform->LocalScale.x, 0.5f, -100.0f, 100.0f);
-                ImGui::DragFloat("Rotation", &transform->LocalRotation, 0.5f, -100.0f, 100.0f);
+                ImGui::DragFloat2("Position", &transform->Position.x, 0.5f, -100.0f, 100.0f);
+                ImGui::DragFloat2("Scale", &transform->Scale.x, 0.5f, -100.0f, 100.0f);
+                ImGui::DragFloat("Rotation", &transform->Rotation, 0.5f, -100.0f, 100.0f);
                 ImGui::Separator();
                 ImGui::PopID();
             }
