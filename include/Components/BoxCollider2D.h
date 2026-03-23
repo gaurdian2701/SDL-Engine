@@ -9,7 +9,6 @@ namespace Components
 	struct BoxCollider2D
 	{
 		BoxCollider2D() = default;
-
 		~BoxCollider2D() = default;
 
 		const glm::vec2 &GetHalfExtents() const
@@ -44,15 +43,21 @@ namespace Components
 			m_center = center;
 			m_halfExtents = halfExtents;
 			m_rotation = rotationInRadians;
-			RecalculatePoints();
+			RecalculateBounds();
 		}
 
-		void SetCenter(const glm::vec2 &center)
+		void UpdatePositionAndRotation(const glm::vec2 &center, const float rotationInRadians)
 		{
 			if (glm::length(center - m_center) > 0.0f)
 			{
+				TranslateBounds(center);
 				m_center = center;
-				RecalculatePoints();
+			}
+
+			if (glm::abs(rotationInRadians - m_rotation) > 0.0f)
+			{
+				RotateBounds(rotationInRadians - m_rotation);
+				m_rotation = rotationInRadians;
 			}
 		}
 
@@ -61,24 +66,28 @@ namespace Components
 			if (glm::length(halfExtents - m_halfExtents) > 0.001f)
 			{
 				m_halfExtents = halfExtents;
-				RecalculatePoints();
+				ReInitializeCollider();
 			}
 		}
 
-		void SetRotation(const float radians)
-		{
-			m_rotation = radians;
-			RecalculatePoints();
-		}
-
 	private:
-		void RecalculatePoints()
+		void ReInitializeCollider()
 		{
-			TranslatePoints();
-			RotatePoints();
+			RecalculateBounds();
+			RotateBounds(m_rotation);
 		}
 
-		void TranslatePoints()
+		void TranslateBounds(const glm::vec2& toPoint)
+		{
+			glm::vec2 translationVector = toPoint - m_center;
+
+			m_topLeft += translationVector;
+			m_topRight += translationVector;
+			m_bottomLeft += translationVector;
+			m_bottomRight += translationVector;
+		}
+
+		void RecalculateBounds()
 		{
 			m_topLeft = glm::vec2(m_center.x - m_halfExtents.x, m_center.y + m_halfExtents.y);
 			m_topRight = glm::vec2(m_center.x + m_halfExtents.x, m_center.y + m_halfExtents.y);
@@ -86,12 +95,12 @@ namespace Components
 			m_bottomRight = glm::vec2(m_center.x + m_halfExtents.x, m_center.y - m_halfExtents.y);
 		}
 
-		void RotatePoints()
+		void RotateBounds(const float radians)
 		{
-			Core::MathHelpers::RotatePointAroundCenter(m_topLeft, m_center, m_rotation);
-			Core::MathHelpers::RotatePointAroundCenter(m_topRight, m_center, m_rotation);
-			Core::MathHelpers::RotatePointAroundCenter(m_bottomLeft, m_center, m_rotation);
-			Core::MathHelpers::RotatePointAroundCenter(m_bottomRight, m_center, m_rotation);
+			Core::MathHelpers::RotatePointAroundCenter(m_topLeft, m_center, radians);
+			Core::MathHelpers::RotatePointAroundCenter(m_topRight, m_center, radians);
+			Core::MathHelpers::RotatePointAroundCenter(m_bottomLeft, m_center, radians);
+			Core::MathHelpers::RotatePointAroundCenter(m_bottomRight, m_center, radians);
 		}
 
 		glm::vec2 m_center = glm::vec2(0.0f);
