@@ -101,8 +101,8 @@ void Core::ECS::Systems::Physics::NarrowPhase::SolveBoxVsBox()
 				firstBox->IsColliding = true;
 				secondBox->IsColliding = true;
 
-				// firstTransform->Position += penetrationDepth * 0.5f * contactNormal;
-				// secondTransform->Position -= penetrationDepth * 0.5f * contactNormal;
+				firstTransform->Position -= penetrationDepth * 0.5f * contactNormal;
+				secondTransform->Position += penetrationDepth * 0.5f * contactNormal;
 			}
 		}
 	}

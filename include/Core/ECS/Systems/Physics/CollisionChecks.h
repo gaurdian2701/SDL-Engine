@@ -148,6 +148,11 @@ namespace CollisionChecks
 		penetrationDepth = minSeparationDepth;
 		contactNormal = glm::normalize(resolutionNormal);
 
+		glm::vec2 directionVector = centerB - centerA;
+		if (glm::dot(contactNormal, directionVector) < 0.0f)
+		{
+			contactNormal = -contactNormal;
+		}
 		return true;
 	}
 }
