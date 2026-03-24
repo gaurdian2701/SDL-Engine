@@ -158,23 +158,6 @@ namespace Core::ECS
 		}
 
 		template<typename FirstComponentType, typename... OtherComponentTypes, typename Functor>
-		void BreakableForEachUsingComponentsWithEntityID(const Functor &someFunctor)
-		{
-			const auto [it, entities] = GetView<FirstComponentType, OtherComponentTypes...>();
-			bool breakInitiated = false;
-
-			//Query dense component arrays and pass them into the functor
-			for (uint32_t index = 1; index < entities.size(); ++index) {
-				uint32_t entityID = entities[index];
-				someFunctor(breakInitiated, entityID, GetComponent<FirstComponentType>(entityID),
-				            GetComponent<OtherComponentTypes>(entityID)...);
-				if (breakInitiated) {
-					break;
-				}
-			}
-		}
-
-		template<typename FirstComponentType, typename... OtherComponentTypes, typename Functor>
 		void ForEachUsingComponentsWithEntityID(const Functor &someFunctor)
 		{
 			const auto [it, entities] = GetView<FirstComponentType, OtherComponentTypes...>();
@@ -182,23 +165,6 @@ namespace Core::ECS
 			//Query dense component arrays and pass them into the functor
 			for (uint32_t index = 1; index < entities.size(); ++index) {
 				uint32_t entityID = entities[index];
-				someFunctor(entityID, GetComponent<FirstComponentType>(entityID),
-				            GetComponent<OtherComponentTypes>(entityID)...);
-			}
-		}
-
-		template<typename FirstComponentType, typename... OtherComponentTypes, typename Functor>
-		void ForEachUsingEntities(const std::set<uint32_t> &someEntityIDs, const Functor &someFunctor)
-		{
-			for (auto entityID: someEntityIDs) {
-				someFunctor(GetComponent<FirstComponentType>(entityID), GetComponent<OtherComponentTypes>(entityID)...);
-			}
-		}
-
-		template<typename FirstComponentType, typename... OtherComponentTypes, typename Functor>
-		void ForEachUsingEntitiesWithEntityID(const std::set<uint32_t> &someEntityIDs, const Functor &someFunctor)
-		{
-			for (auto entityID: someEntityIDs) {
 				someFunctor(entityID, GetComponent<FirstComponentType>(entityID),
 				            GetComponent<OtherComponentTypes>(entityID)...);
 			}

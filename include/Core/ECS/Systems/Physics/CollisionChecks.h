@@ -59,8 +59,16 @@ namespace CollisionChecks
 		minProjectionValueOnAxis = min;
 	}
 
-	static inline bool PolygonVsPolygon(const std::vector<const glm::vec2*>& pointsA, const std::vector<const glm::vec2*>& pointsB)
+	static inline bool PolygonVsPolygon(const glm::vec2& centerA,
+		const glm::vec2& centerB,
+		const std::vector<const glm::vec2*>& pointsA,
+		const std::vector<const glm::vec2*>& pointsB,
+		float& penetrationDepth,
+		glm::vec2& contactNormal)
 	{
+		float minSeparationDepth = FLT_MAX;
+		glm::vec2 resolutionNormal = glm::vec2(0.0f); //Normal used for resolving collisions
+
 		//Separating Axis Theorem for detecting collisions between polygons
 		for (uint32_t pointIndex = 0; pointIndex < pointsA.size(); pointIndex++)
 		{
@@ -69,18 +77,26 @@ namespace CollisionChecks
 			const glm::vec2& secondPoint = *pointsA[(pointIndex+1)%pointsA.size()];
 			const glm::vec2 edge = secondPoint - firstPoint;
 
-			glm::vec2 normal = glm::vec2(-edge.y, edge.x);
+			glm::vec2 axisNormal = glm::vec2(-edge.y, edge.x);
 
 			//Using the normal as the new axis, project all edges of both polygons onto that axis and find their
 			//max and min projections
 			float maxAOnAxis = 0.0f, minAOnAxis = 0.0f, maxBOnAxis = 0.0f, minBOnAxis = 0.0f;
-			ProjectPointsOnAxis(pointsA, normal, maxAOnAxis, minAOnAxis);
-			ProjectPointsOnAxis(pointsB, normal, maxBOnAxis, minBOnAxis);
+			ProjectPointsOnAxis(pointsA, axisNormal, maxAOnAxis, minAOnAxis);
+			ProjectPointsOnAxis(pointsB, axisNormal, maxBOnAxis, minBOnAxis);
 
 			//Using max and min projections, if a gap is found, return false
 			if (minAOnAxis >= maxBOnAxis || maxAOnAxis <= minBOnAxis)
 			{
 				return false;
+			}
+
+			//Find the magnitude of separation
+			float axisDepth = std::min(glm::length(maxBOnAxis - minAOnAxis), glm::length(maxAOnAxis - minBOnAxis));
+			if (axisDepth < minSeparationDepth)
+			{
+				minSeparationDepth = axisDepth;
+				resolutionNormal = axisNormal;
 			}
 		}
 
@@ -91,20 +107,47 @@ namespace CollisionChecks
 			const glm::vec2& firstPoint = *pointsB[pointIndex];
 			const glm::vec2& secondPoint = *pointsB[(pointIndex+1)%pointsB.size()];
 			const glm::vec2 edge = secondPoint - firstPoint;
-			glm::vec2 normal = glm::vec2(-edge.y, edge.x);
+			glm::vec2 axisNormal = glm::vec2(-edge.y, edge.x);
 
 			//Using the normal as the new axis, project all edges of both polygons onto that axis and find their
 			//max and min projections
 			float maxAOnAxis = 0.0f, minAOnAxis = 0.0f, maxBOnAxis = 0.0f, minBOnAxis = 0.0f;
-			ProjectPointsOnAxis(pointsA, normal, maxAOnAxis, minAOnAxis);
-			ProjectPointsOnAxis(pointsB, normal, maxBOnAxis, minBOnAxis);
+			ProjectPointsOnAxis(pointsA, axisNormal, maxAOnAxis, minAOnAxis);
+			ProjectPointsOnAxis(pointsB, axisNormal, maxBOnAxis, minBOnAxis);
 
 			//Using max and min projections, if a gap is found, return false
 			if (minAOnAxis >= maxBOnAxis || maxAOnAxis <= minBOnAxis)
 			{
 				return false;
 			}
+
+			//Find the magnitude of separation
+			float axisDepth = std::min(glm::length(maxBOnAxis - minAOnAxis), glm::length(maxAOnAxis - minBOnAxis));
+			if (axisDepth < minSeparationDepth)
+			{
+				minSeparationDepth = axisDepth;
+				resolutionNormal = axisNormal;
+			}
 		}
+
+		//Since we were computing the depth with un-normalized axisNormal, we divide by the length of the normal
+		//here to get the proper depth as if it was computed with the normalized axis normal
+		minSeparationDepth /= glm::length(resolutionNormal);
+
+#ifdef _DEBUG
+		glm::vec2 centerScreenA = Core::WorldToScreen(centerA);
+		glm::vec2 centerScreenB = Core::WorldToScreen(centerB);
+		glm::vec2 screenAEnd = Core::WorldToScreen(centerA + minSeparationDepth * glm::normalize(resolutionNormal));
+		glm::vec2 screenBEnd = Core::WorldToScreen(centerB - minSeparationDepth * glm::normalize(resolutionNormal));
+
+		SDL_SetRenderDrawColor(Application::GetCoreInstance().GetMainRenderer(), 255, 0, 0, 255);
+		SDL_RenderLine(Application::GetCoreInstance().GetMainRenderer(), centerScreenA.x, centerScreenA.y, screenAEnd.x, screenAEnd.y);
+		SDL_RenderLine(Application::GetCoreInstance().GetMainRenderer(), centerScreenB.x, centerScreenB.y, screenBEnd.x, screenBEnd.y);
+#endif
+
+		penetrationDepth = minSeparationDepth;
+		contactNormal = glm::normalize(resolutionNormal);
+
 		return true;
 	}
 }

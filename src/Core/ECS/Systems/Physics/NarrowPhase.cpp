@@ -22,7 +22,6 @@ void Core::ECS::Systems::Physics::NarrowPhase::DoNarrowPhase(const float deltaTi
 
 	SolveCircleVsCircle();
 	SolveBoxVsBox();
-	// SolveAABBVsAABB();
 }
 
 void Core::ECS::Systems::Physics::NarrowPhase::SolveCircleVsCircle()
@@ -61,41 +60,20 @@ void Core::ECS::Systems::Physics::NarrowPhase::SolveCircleVsCircle()
 	}
 }
 
-void Core::ECS::Systems::Physics::NarrowPhase::SolveAABBVsAABB()
-{
-	auto [iterator1, view] = ECSManager::GetInstance().GetView<Components::Transform, Components::BoxCollider2D>();
-
-	for (iterator1; iterator1 != view.end(); ++iterator1)
-	{
-		auto firstTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(*iterator1);
-		auto firstAABB = ECSManager::GetInstance().GetComponent<Components::BoxCollider2D>(*iterator1);
-
-		for (auto iterator2 = iterator1+1; iterator2 != view.end(); ++iterator2)
-		{
-			auto secondTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(*iterator2);
-			auto secondAABB = ECSManager::GetInstance().GetComponent<Components::BoxCollider2D>(*iterator2);
-
-			if (CollisionChecks::AABBVsAABB(firstTransform->Position,
-			                                secondTransform->Position,
-			                                firstAABB->GetHalfExtents(),
-			                                secondAABB->GetHalfExtents()))
-			{
-				firstAABB->IsColliding = true;
-				secondAABB->IsColliding = true;
-			}
-		}
-	}
-}
-
 void Core::ECS::Systems::Physics::NarrowPhase::SolveBoxVsBox()
 {
 	static std::vector<const glm::vec2*> firstBoxPoints = std::vector<const glm::vec2*>(4);
 	static std::vector<const glm::vec2*> secondBoxPoints = std::vector<const glm::vec2*>(4);
 
-	auto [entityID1, view] = ECSManager::GetInstance().GetView<Components::BoxCollider2D>();
+	float penetrationDepth = 0.0f;
+	glm::vec2 contactNormal = glm::vec2(0.0f);
+
+	auto [entityID1, view] = ECSManager::GetInstance().GetView<Components::Transform,
+	Components::BoxCollider2D>();
 
 	for (entityID1; entityID1 != view.end(); ++entityID1)
 	{
+		auto firstTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(*entityID1);
 		auto firstBox = ECSManager::GetInstance().GetComponent<Components::BoxCollider2D>(*entityID1);
 
 		firstBoxPoints = {&firstBox->GetTopLeftPoint(),
@@ -105,6 +83,7 @@ void Core::ECS::Systems::Physics::NarrowPhase::SolveBoxVsBox()
 
 		for (auto entityID2 = entityID1+1; entityID2 != view.end(); ++entityID2)
 		{
+			auto secondTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(*entityID2);
 			auto secondBox = ECSManager::GetInstance().GetComponent<Components::BoxCollider2D>(*entityID2);
 
 			secondBoxPoints = {&secondBox->GetTopLeftPoint(),
@@ -112,10 +91,18 @@ void Core::ECS::Systems::Physics::NarrowPhase::SolveBoxVsBox()
 				&secondBox->GetBottomRightPoint(),
 				&secondBox->GetBottomLeftPoint()};
 
-			if (CollisionChecks::PolygonVsPolygon(firstBoxPoints, secondBoxPoints))
+			if (CollisionChecks::PolygonVsPolygon(firstBox->GetCenter(),
+				secondBox->GetCenter(),
+				firstBoxPoints,
+				secondBoxPoints,
+				penetrationDepth,
+				contactNormal))
 			{
 				firstBox->IsColliding = true;
 				secondBox->IsColliding = true;
+
+				// firstTransform->Position += penetrationDepth * 0.5f * contactNormal;
+				// secondTransform->Position -= penetrationDepth * 0.5f * contactNormal;
 			}
 		}
 	}

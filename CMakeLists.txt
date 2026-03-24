@@ -45,6 +45,7 @@ add_library(
         include/Core/ECS/Systems/Physics/NarrowPhase.h
         src/Core/ECS/Systems/Physics/NarrowPhase.cpp
         include/Core/MathHelpers.h
+        include/Core/ECS/Systems/Debug/DebugDrawHelpers.h
 )
 
 EnableASANCompileOptions(${ENGINE_BINARY_NAME})

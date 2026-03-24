@@ -12,7 +12,6 @@ namespace Core::ECS::Systems::Physics
 
 	private:
 		void SolveCircleVsCircle();
-		void SolveAABBVsAABB();
 		void SolveBoxVsBox();
 	};
 }

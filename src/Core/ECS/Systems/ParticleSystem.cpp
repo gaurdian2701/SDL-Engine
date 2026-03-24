@@ -18,25 +18,26 @@ void Core::ECS::Systems::ParticleSystem::BeginSystem()
 
 void Core::ECS::Systems::ParticleSystem::ProcessInitializationQueue()
 {
-	ECSManager::GetInstance().ForEachUsingEntities<Components::Transform, Components::ParticleEmitter>
-	(m_initializationQueue,
-	 [&](const Components::Transform *transform, Components::ParticleEmitter *particleEmitter)
-	 {
-		 std::uniform_int_distribution<int> randomDistribution(
-			 -particleEmitter->MaxDeviation, particleEmitter->MaxDeviation);
+	for (auto entityID : m_initializationQueue)
+	{
+		auto transform = ECSManager::GetInstance().GetComponent<Components::Transform>(entityID);
+		auto particleEmitter = ECSManager::GetInstance().GetComponent<Components::ParticleEmitter>(entityID);
 
-		 for (auto &particle: particleEmitter->Particles) {
-			 //Simulation
-			 //Set particle's initial position according to the initial velocity.
-			 //The positions are relative to the particle emitter's world position
-			 particle.CurrentPosition = transform->Position + particleEmitter->StartingOffset +
-			                            glm::vec2(randomDistribution(m_randomOffsetGenerator),
-			                                      randomDistribution(m_randomOffsetGenerator));
+		std::uniform_int_distribution<int> randomDistribution(-particleEmitter->MaxDeviation, particleEmitter->MaxDeviation);
 
-			 //Rendering
-			 RenderParticle(particleEmitter, particle);
-		 }
-	 });
+		for (auto &particle: particleEmitter->Particles)
+		{
+			//Simulation
+			//Set particle's initial position according to the initial velocity.
+			//The positions are relative to the particle emitter's world position
+			particle.CurrentPosition = transform->Position + particleEmitter->StartingOffset +
+									   glm::vec2(randomDistribution(m_randomOffsetGenerator),
+												 randomDistribution(m_randomOffsetGenerator));
+
+			//Rendering
+			RenderParticle(particleEmitter, particle);
+		}
+	}
 }
 
 void Core::ECS::Systems::ParticleSystem::UpdateSystem(const float deltaTime)

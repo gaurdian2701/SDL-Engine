@@ -11,6 +11,16 @@ namespace Components
 		BoxCollider2D() = default;
 		~BoxCollider2D() = default;
 
+		const glm::vec2& GetCenter() const
+		{
+			return m_center;
+		}
+
+		float GetRotation() const
+		{
+			return m_rotation;
+		}
+
 		const glm::vec2 &GetHalfExtents() const
 		{
 			return m_halfExtents;
