@@ -73,7 +73,7 @@ namespace Components
 
 		void SetHalfExtents(const glm::vec2 &&halfExtents)
 		{
-			if (glm::length(halfExtents - m_halfExtents) > 0.001f)
+			if (glm::length(halfExtents - m_halfExtents) > 0.0f)
 			{
 				m_halfExtents = halfExtents;
 				ReInitializeCollider();

@@ -8,5 +8,6 @@ namespace Components
         Rigidbody2D() = default;
         ~Rigidbody2D() = default;
 
+        glm::vec2 Velocity = glm::vec2(0.0f);
     };
 }

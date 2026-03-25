@@ -18,8 +18,10 @@ namespace Core::ECS::Systems
 		void ProcessInitializationQueue() override{}
 		void BeginSystem() override;
 		void UpdateSystem(const float deltaTime) override;
+		void UpdateRigidbodies(const float deltaTime);
 
 	private:
+		glm::vec2 m_gravity = glm::vec2(0.0f, -9.81f);
 		Physics::NarrowPhase* m_narrowPhase = nullptr;
 	};
 }
