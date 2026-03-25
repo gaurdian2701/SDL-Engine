@@ -12,7 +12,6 @@ The folders contain code for:
 - Sparse Sets.
 - Systems that use the ECS.
 - A Component Factory. This simply creates component instances for each gameobject.
-- Logic for an Asteroids game. I made this game as part of my assignment for my studies.
 
 I currently have the following systems implemented:
 - A Rendering System that uses SDL for rendering textures on an SDL_Rect. It makes use of the Transform and Renderer2D Components.
