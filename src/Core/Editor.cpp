@@ -3,6 +3,7 @@
 #include "Application/Application.h"
 #include "Components/BoxCollider2D.h"
 #include "Components/CircleCollider2D.h"
+#include "Components/Rigidbody2D.h"
 #include "Components/Transform.h"
 #include "Core/HelperFunctions.h"
 #include "Scene/SceneManager.h"
@@ -87,11 +88,16 @@ void Core::Editor::Update(const float deltaTime)
     {
         if (gameObject != nullptr)
         {
+            ImGui::Separator();
+            ImGui::PushID(gameObject->m_entityID);
+            ImGui::Text("%s", gameScene->GetGameObjectFromEntityID(gameObject->m_entityID)->m_name.c_str());
+
             if (auto transform = gameObject->GetComponent<Components::Transform>())
             {
+                ImGui::Separator();
+                ImGui::Text("TRANSFORM");
+
                 //Accept inputs
-                ImGui::PushID(gameObject->m_entityID);
-                ImGui::Text("%s", gameScene->GetGameObjectFromEntityID(gameObject->m_entityID)->m_name.c_str());
                 ImGui::DragFloat2("Position", &transform->Position.x, 0.5f, -100.0f, 100.0f);
                 ImGui::DragFloat2("Scale", &transform->Scale.x, 0.5f, -100.0f, 100.0f);
                 ImGui::DragFloat("Rotation", &transform->Rotation, 0.5f, -100.0f, 100.0f);
@@ -105,13 +111,24 @@ void Core::Editor::Update(const float deltaTime)
                 {
                     circleCollider->Radius = glm::length(transform->Scale) * 0.5f;
                 }
-
                 ImGui::Separator();
-                ImGui::PopID();
             }
+
+            if (auto rigidbody = gameObject->GetComponent<Components::Rigidbody2D>())
+            {
+                ImGui::Separator();
+                ImGui::Text("RIGIDBODY");
+
+                float mass = rigidbody->GetMass();
+
+                ImGui::DragFloat("Mass", &mass, 1.0f, 0.001f, 1000.0f);
+                rigidbody->SetMass(mass);
+                ImGui::DragFloat("Restitution", &rigidbody->Restitution, 1.0f, 0.001f, 100.0f);
+                ImGui::Separator();
+            }
+            ImGui::PopID();
         }
     }
-
     ImGui::End();
 
     ImGui::Begin("Scene Options");

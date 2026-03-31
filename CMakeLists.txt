@@ -46,6 +46,9 @@ add_library(
         src/Core/ECS/Systems/Physics/NarrowPhase.cpp
         include/Core/MathHelpers.h
         include/Core/ECS/Systems/Debug/DebugDrawHelpers.h
+        include/Core/ECS/Systems/Physics/Solver.h
+        include/Core/ECS/Systems/Physics/CollisionManifold.h
+        src/Core/ECS/Systems/Physics/Solver.cpp
 )
 
 EnableASANCompileOptions(${ENGINE_BINARY_NAME})

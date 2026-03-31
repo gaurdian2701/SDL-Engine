@@ -13,69 +13,69 @@ namespace Components
 
 		const glm::vec2& GetCenter() const
 		{
-			return m_center;
+			return center;
 		}
 
 		float GetRotation() const
 		{
-			return m_rotation;
+			return rotation;
 		}
 
 		const glm::vec2 &GetHalfExtents() const
 		{
-			return m_halfExtents;
+			return halfExtents;
 		}
 
 		const glm::vec2 &GetTopLeftPoint() const
 		{
-			return m_topLeft;
+			return topLeft;
 		}
 
 		const glm::vec2 &GetTopRightPoint() const
 		{
-			return m_topRight;
+			return topRight;
 		}
 
 		const glm::vec2 &GetBottomLeftPoint() const
 		{
-			return m_bottomLeft;
+			return bottomLeft;
 		}
 
 		const glm::vec2 &GetBottomRightPoint() const
 		{
-			return m_bottomRight;
+			return bottomRight;
 		}
 
-		void Initialize(const glm::vec2 &center,
-			const glm::vec2&& halfExtents,
-			float rotationInRadians)
+		void Initialize(const glm::vec2 &someCenter,
+			const glm::vec2&& someHalfExtents,
+			float someRotationInRadians)
 		{
-			m_center = center;
-			m_halfExtents = halfExtents;
-			m_rotation = rotationInRadians;
+			center = someCenter;
+			halfExtents = someHalfExtents;
+			rotation = someRotationInRadians;
 			RecalculateBounds();
 		}
 
-		void UpdatePositionAndRotation(const glm::vec2 &center, const float rotationInRadians)
+		void UpdatePositionAndRotation(const glm::vec2 &someCenter, const float someRotationInRadians)
 		{
-			if (glm::length(center - m_center) > 0.0f)
+			if (glm::length(someCenter - center) > 0.0f)
 			{
-				TranslateBounds(center);
-				m_center = center;
+				TranslateBounds(someCenter);
+				center = someCenter;
 			}
 
-			if (glm::abs(rotationInRadians - m_rotation) > 0.0f)
+			if (glm::abs(someRotationInRadians - rotation) > 0.0f)
 			{
-				RotateBounds(rotationInRadians - m_rotation);
-				m_rotation = rotationInRadians;
+				RotateBounds(someRotationInRadians - rotation);
+				rotation = someRotationInRadians;
 			}
 		}
 
-		void SetHalfExtents(const glm::vec2 &&halfExtents)
+		void SetHalfExtents(const glm::vec2 &&someHalfExtents)
 		{
-			if (glm::length(halfExtents - m_halfExtents) > 0.0f)
+			if (glm::length(someHalfExtents - halfExtents) > 0.0f)
 			{
-				m_halfExtents = halfExtents;
+				halfExtents = someHalfExtents;
 				ReInitializeCollider();
 			}
 		}
@@ -84,42 +84,42 @@ namespace Components
 		void ReInitializeCollider()
 		{
 			RecalculateBounds();
-			RotateBounds(m_rotation);
+			RotateBounds(rotation);
 		}
 
 		void TranslateBounds(const glm::vec2& toPoint)
 		{
-			glm::vec2 translationVector = toPoint - m_center;
+			glm::vec2 translationVector = toPoint - center;
 
-			m_topLeft += translationVector;
-			m_topRight += translationVector;
-			m_bottomLeft += translationVector;
-			m_bottomRight += translationVector;
+			topLeft += translationVector;
+			topRight += translationVector;
+			bottomLeft += translationVector;
+			bottomRight += translationVector;
 		}
 
 		void RecalculateBounds()
 		{
-			m_topLeft = glm::vec2(m_center.x - m_halfExtents.x, m_center.y + m_halfExtents.y);
-			m_topRight = glm::vec2(m_center.x + m_halfExtents.x, m_center.y + m_halfExtents.y);
-			m_bottomLeft = glm::vec2(m_center.x - m_halfExtents.x, m_center.y - m_halfExtents.y);
-			m_bottomRight = glm::vec2(m_center.x + m_halfExtents.x, m_center.y - m_halfExtents.y);
+			topLeft = glm::vec2(center.x - halfExtents.x, center.y + halfExtents.y);
+			topRight = glm::vec2(center.x + halfExtents.x, center.y + halfExtents.y);
+			bottomLeft = glm::vec2(center.x - halfExtents.x, center.y - halfExtents.y);
+			bottomRight = glm::vec2(center.x + halfExtents.x, center.y - halfExtents.y);
 		}
 
 		void RotateBounds(const float radians)
 		{
-			Core::MathHelpers::RotatePointAroundCenter(m_topLeft, m_center, radians);
-			Core::MathHelpers::RotatePointAroundCenter(m_topRight, m_center, radians);
-			Core::MathHelpers::RotatePointAroundCenter(m_bottomLeft, m_center, radians);
-			Core::MathHelpers::RotatePointAroundCenter(m_bottomRight, m_center, radians);
+			Core::MathHelpers::RotatePointAroundCenter(topLeft, center, radians);
+			Core::MathHelpers::RotatePointAroundCenter(topRight, center, radians);
+			Core::MathHelpers::RotatePointAroundCenter(bottomLeft, center, radians);
+			Core::MathHelpers::RotatePointAroundCenter(bottomRight, center, radians);
 		}
 
-		glm::vec2 m_center = glm::vec2(0.0f);
-		glm::vec2 m_halfExtents = glm::vec2(0.0f);
-		glm::vec2 m_topLeft = glm::vec2(0.0f);
-		glm::vec2 m_topRight = glm::vec2(0.0f);
-		glm::vec2 m_bottomLeft = glm::vec2(0.0f);
-		glm::vec2 m_bottomRight = glm::vec2(0.0f);
-		float m_rotation = 0.0f;
+		glm::vec2 center = glm::vec2(0.0f);
+		glm::vec2 halfExtents = glm::vec2(0.0f);
+		glm::vec2 topLeft = glm::vec2(0.0f);
+		glm::vec2 topRight = glm::vec2(0.0f);
+		glm::vec2 bottomLeft = glm::vec2(0.0f);
+		glm::vec2 bottomRight = glm::vec2(0.0f);
+		float rotation = 0.0f;
 
 	public:
 		bool IsColliding = false;

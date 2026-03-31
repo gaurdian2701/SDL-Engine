@@ -8,19 +8,30 @@
 void Core::ECS::Systems::PhysicsSystem::RegisterInterestedComponents()
 {
     ECSManager::GetInstance().RegisterInterestedComponentsForSystem
-        <Components::Transform, Components::BoxCollider2D>(this);
+        <Components::Transform, Components::Rigidbody2D>(this);
+
+#ifdef _DEBUG
+	m_shouldRunOnlyWhilePlaying = true;
+#endif
+}
+
+void Core::ECS::Systems::PhysicsSystem::ProcessInitializationQueue()
+{
+
 }
 
 void Core::ECS::Systems::PhysicsSystem::BeginSystem()
 {
 	//TODO: Create Broad Phase
-	m_narrowPhase = new Physics::NarrowPhase();
 }
 
 void Core::ECS::Systems::PhysicsSystem::UpdateSystem(const float deltaTime)
 {
+	System::UpdateSystem(deltaTime);
 	UpdateRigidbodies(deltaTime);
-	m_narrowPhase->DoNarrowPhase(deltaTime);
+	m_narrowPhase.GenerateManifolds(m_collisionManifolds);
+	m_solver.Solve(m_collisionManifolds);
+	m_collisionManifolds.clear();
 }
 
 void Core::ECS::Systems::PhysicsSystem::UpdateRigidbodies(const float deltaTime)
@@ -29,6 +40,6 @@ void Core::ECS::Systems::PhysicsSystem::UpdateRigidbodies(const float deltaTime)
 		[&](Components::Transform* transform, Components::Rigidbody2D* rigidbody)
 		{
 			rigidbody->Velocity += m_gravity * deltaTime;
-			transform->Position += rigidbody->Velocity;
+			transform->Position += rigidbody->Velocity * deltaTime;
 		});
 }

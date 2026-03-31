@@ -1,4 +1,12 @@
 ﻿#pragma once
+#include <vector>
+#include "CollisionManifold.h"
+
+namespace Components
+{
+	struct Transform;
+	struct Rigidbody2D;
+}
 
 namespace Core::ECS::Systems::Physics
 {
@@ -8,11 +16,10 @@ namespace Core::ECS::Systems::Physics
 		NarrowPhase() = default;
 		~NarrowPhase() = default;
 
-		void DoNarrowPhase(const float deltaTime);
+		void GenerateManifolds(std::vector<CollisionManifold>& manifolds);
 
 	private:
-		void SolveCircleVsCircle();
-		void SolveBoxVsBox();
-		void SolveBoxVsCircle();
+		void GenerateBoxCollisionManifolds(std::vector<CollisionManifold>& manifolds);
+		void GenerateCircleCollisionManifolds(std::vector<CollisionManifold>& manifolds);
 	};
 }

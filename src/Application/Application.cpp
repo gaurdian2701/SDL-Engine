@@ -16,7 +16,7 @@
 #endif
 
 static Application* CoreApplicationInstance = nullptr;
-const char* WINDOW_NAME = "SDL-Physics";
+const char* WINDOW_NAME = "SDL-Project";
 
 Application::Application()
 {

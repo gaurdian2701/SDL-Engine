@@ -13,29 +13,29 @@ namespace Components
 
         const glm::vec2& GetUpVector()
         {
-            if (m_rotationDirtyByte)
+            if (rotationDirtyByte)
             {
-                m_up = glm::vec2(-std::sin(Rotation), std::cos(Rotation));
-                m_rotationDirtyByte = false;
+                up = glm::vec2(-std::sin(Rotation), std::cos(Rotation));
+                rotationDirtyByte = false;
             }
-            return m_up;
+            return up;
         }
 
         const glm::vec2& GetRightVector()
         {
-            if (m_rotationDirtyByte)
+            if (rotationDirtyByte)
             {
-                m_right = glm::vec2(std::cos(Rotation), std::sin(Rotation));
-                m_rotationDirtyByte = false;
+                right = glm::vec2(std::cos(Rotation), std::sin(Rotation));
+                rotationDirtyByte = false;
             }
-            return m_right;
+            return right;
         }
 
         void SetLocalRotation(float radians)
         {
             if (radians - Rotation > 0.001f)
             {
-                m_rotationDirtyByte = true;
+                rotationDirtyByte = true;
             }
 
             Rotation = radians;
@@ -48,9 +48,9 @@ namespace Components
         bool Static = false;
 
     private:
-        glm::vec2 m_up = glm::vec2(0.0f);
-        glm::vec2 m_right = glm::vec2(0.0f);
+        glm::vec2 up = glm::vec2(0.0f);
+        glm::vec2 right = glm::vec2(0.0f);
 
-        bool m_rotationDirtyByte = false;
+        bool rotationDirtyByte = false;
     };
 }

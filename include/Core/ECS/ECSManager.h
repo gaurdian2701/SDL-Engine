@@ -28,14 +28,17 @@ namespace Core::ECS
 		}
 
 		void InitializeManager(uint32_t someMaxEntities);
-
 		void BeginSystems();
-
 		void UpdateManager(const float deltaTime);
 #ifdef  _DEBUG
 		void DebugUpdateManager(const float deltaTime, bool scenePaused);
 #endif
 		void CleanupManager();
+
+		[[nodiscard]] uint32_t GetMaxEntityCount() const
+		{
+			return m_maxEntities;
+		}
 
 		std::vector<void(*)(ECSManager &, const std::uint32_t)> &GetComponentRemovalHandlesArray();
 
@@ -226,7 +229,6 @@ namespace Core::ECS
 
 	private:
 		void CreateSystems();
-
 		void InitializeSystems();
 
 	private:

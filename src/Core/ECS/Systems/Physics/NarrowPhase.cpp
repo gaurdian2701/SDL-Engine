@@ -4,8 +4,9 @@
 #include "Components/CircleCollider2D.h"
 #include "Components/Transform.h"
 #include "Core/ECS/Systems/Physics/CollisionChecks.h"
+#include "Components/Rigidbody2D.h"
 
-void Core::ECS::Systems::Physics::NarrowPhase::DoNarrowPhase(const float deltaTime)
+void Core::ECS::Systems::Physics::NarrowPhase::GenerateManifolds(std::vector<CollisionManifold>& manifolds)
 {
 	ECSManager::GetInstance().ForEachUsingComponents<Components::CircleCollider2D>(
 	[&](Components::CircleCollider2D *circleCollider)
@@ -20,55 +21,11 @@ void Core::ECS::Systems::Physics::NarrowPhase::DoNarrowPhase(const float deltaTi
 			box->IsColliding = false;
 		});
 
-	SolveCircleVsCircle();
-	SolveBoxVsBox();
-	SolveBoxVsCircle();
+	GenerateBoxCollisionManifolds(manifolds);
+	GenerateCircleCollisionManifolds(manifolds);
 }
 
-void Core::ECS::Systems::Physics::NarrowPhase::SolveCircleVsCircle()
-{
-	auto [iterator1, view] = ECSManager::GetInstance().GetView<Components::Transform, Components::CircleCollider2D>();
-
-	for (iterator1; iterator1 != view.end(); ++iterator1)
-	{
-		auto firstTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(*iterator1);
-		auto firstCircle = ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(*iterator1);
-
-		for (auto iterator2 = iterator1+1; iterator2 != view.end(); ++iterator2)
-		{
-			auto secondTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(*iterator2);
-			auto secondCircle = ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(*iterator2);
-			float radiusSum = firstCircle->Radius + secondCircle->Radius;
-
-			if (CollisionChecks::CircleVsCircle(firstTransform->Position,
-			                                    secondTransform->Position,
-			                                    radiusSum))
-			{
-				firstCircle->IsColliding = true;
-				secondCircle->IsColliding = true;
-
-				//Resolve Circle Vs Circle
-				glm::vec2 directionVector = secondTransform->Position - firstTransform->Position;
-				if (glm::length(directionVector) > 0.0f)
-				{
-					glm::vec2 contactNormal = glm::normalize(directionVector);
-					float penetrationDepth = radiusSum - glm::distance(firstTransform->Position, secondTransform->Position);
-					if (!firstTransform->Static)
-					{
-						firstTransform->Position += -penetrationDepth * 0.5f * contactNormal;
-					}
-
-					if (!secondTransform->Static)
-					{
-						secondTransform->Position += penetrationDepth * 0.5f * contactNormal;
-					}
-				}
-			}
-		}
-	}
-}
-
-void Core::ECS::Systems::Physics::NarrowPhase::SolveBoxVsBox()
+void Core::ECS::Systems::Physics::NarrowPhase::GenerateBoxCollisionManifolds(std::vector<CollisionManifold>& manifolds)
 {
 	static std::vector<const glm::vec2*> firstBoxPoints = std::vector<const glm::vec2*>(4);
 	static std::vector<const glm::vec2*> secondBoxPoints = std::vector<const glm::vec2*>(4);
@@ -76,23 +33,27 @@ void Core::ECS::Systems::Physics::NarrowPhase::SolveBoxVsBox()
 	float penetrationDepth = 0.0f;
 	glm::vec2 contactNormal = glm::vec2(0.0f);
 
-	auto [entityID1, view] = ECSManager::GetInstance().GetView<Components::Transform,
+	auto [boxEntityID1, boxView] = ECSManager::GetInstance().GetView<Components::Transform,
 	Components::BoxCollider2D>();
+	auto [circleEntityID, circleView] = ECSManager::GetInstance().GetView<Components::Transform,
+	Components::CircleCollider2D>();
 
-	for (entityID1; entityID1 != view.end(); ++entityID1)
+	for (boxEntityID1; boxEntityID1 != boxView.end(); ++boxEntityID1)
 	{
-		auto firstTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(*entityID1);
-		auto firstBox = ECSManager::GetInstance().GetComponent<Components::BoxCollider2D>(*entityID1);
+		auto firstBoxTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(*boxEntityID1);
+		auto firstBox = ECSManager::GetInstance().GetComponent<Components::BoxCollider2D>(*boxEntityID1);
 
 		firstBoxPoints = {&firstBox->GetTopLeftPoint(),
 			&firstBox->GetTopRightPoint(),
-		    &firstBox->GetBottomRightPoint(),
-			&firstBox->GetBottomLeftPoint()};
+			&firstBox->GetBottomRightPoint(),
+			&firstBox->GetBottomLeftPoint()
+		};
 
-		for (auto entityID2 = entityID1+1; entityID2 != view.end(); ++entityID2)
+		//Solve Boxes vs Boxes first
+		for (auto boxEntityID2 = boxEntityID1+1; boxEntityID2 != boxView.end(); ++boxEntityID2)
 		{
-			auto secondTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(*entityID2);
-			auto secondBox = ECSManager::GetInstance().GetComponent<Components::BoxCollider2D>(*entityID2);
+			auto secondBoxTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(*boxEntityID2);
+			auto secondBox = ECSManager::GetInstance().GetComponent<Components::BoxCollider2D>(*boxEntityID2);
 
 			secondBoxPoints = {&secondBox->GetTopLeftPoint(),
 				&secondBox->GetTopRightPoint(),
@@ -109,64 +70,76 @@ void Core::ECS::Systems::Physics::NarrowPhase::SolveBoxVsBox()
 				firstBox->IsColliding = true;
 				secondBox->IsColliding = true;
 
-				if (!firstTransform->Static)
-				{
-					firstTransform->Position += -penetrationDepth * 0.5f * contactNormal;
-				}
-
-				if (!secondTransform->Static)
-				{
-					secondTransform->Position += penetrationDepth * 0.5f * contactNormal;
-				}
+				manifolds.emplace_back(firstBoxTransform,
+					secondBoxTransform,
+					ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(*boxEntityID1),
+					ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(*boxEntityID2),
+					std::forward<glm::vec2>(contactNormal),
+					penetrationDepth);
 			}
 		}
-	}
-}
 
-void Core::ECS::Systems::Physics::NarrowPhase::SolveBoxVsCircle()
-{
-	static std::vector<const glm::vec2*> boxPoints = std::vector<const glm::vec2*>(4);
-
-	float penetrationDepth = 0.0f;
-	glm::vec2 contactNormal = glm::vec2(0.0f);
-
-	auto [entityID1, boxView] = ECSManager::GetInstance().GetView<Components::Transform, Components::BoxCollider2D>();
-	auto [entityID2, circleView] = ECSManager::GetInstance().GetView<Components::Transform, Components::CircleCollider2D>();
-
-	for (entityID1; entityID1 != boxView.end(); ++entityID1)
-	{
-		auto boxTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(*entityID1);
-		auto boxCollider = ECSManager::GetInstance().GetComponent<Components::BoxCollider2D>(*entityID1);
-
-		boxPoints = {&boxCollider->GetTopLeftPoint(),
-			&boxCollider->GetTopRightPoint(),
-			&boxCollider->GetBottomRightPoint(),
-			&boxCollider->GetBottomLeftPoint()};
-
-		for (entityID2 = circleView.begin() + 1; entityID2 != circleView.end(); ++entityID2)
+		//Solve Boxes vs Circles
+		for (circleEntityID = circleView.begin() + 1; circleEntityID != circleView.end(); ++circleEntityID)
 		{
-			auto circleTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(*entityID2);
-			auto circleCollider = ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(*entityID2);
+			auto circleTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(*circleEntityID);
+			auto circleCollider = ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(*circleEntityID);
 
-			if (CollisionChecks::PolygonVsCircle(boxTransform->Position,
-				boxPoints, circleTransform->Position,
+			if (CollisionChecks::PolygonVsCircle(firstBoxTransform->Position,
+				firstBoxPoints, circleTransform->Position,
 				circleCollider->Radius, penetrationDepth, contactNormal))
 			{
-				boxCollider->IsColliding = true;
+				firstBox->IsColliding = true;
 				circleCollider->IsColliding = true;
 
-				if (!boxTransform->Static)
-				{
-					boxTransform->Position -= penetrationDepth * 0.5f * contactNormal;
-				}
-				if (!circleTransform->Static)
-				{
-					circleTransform->Position += penetrationDepth * 0.5f * contactNormal;
-				}
+				manifolds.emplace_back(firstBoxTransform,
+					circleTransform,
+					ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(*boxEntityID1),
+					ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(*circleEntityID),
+					std::forward<glm::vec2>(contactNormal),
+					penetrationDepth);
 			}
 		}
 	}
 }
 
 
+void Core::ECS::Systems::Physics::NarrowPhase::GenerateCircleCollisionManifolds(std::vector<CollisionManifold>& manifolds)
+{
+	auto [circleEntityID1, view] = ECSManager::GetInstance().GetView<Components::Transform, Components::CircleCollider2D>();
 
+	for (circleEntityID1; circleEntityID1 != view.end(); ++circleEntityID1)
+	{
+		auto firstCircleTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(*circleEntityID1);
+		auto firstCircle = ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(*circleEntityID1);
+
+		for (auto circleEntityID2 = circleEntityID1+1; circleEntityID2 != view.end(); ++circleEntityID2)
+		{
+			auto secondCircleTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(*circleEntityID2);
+			auto secondCircle = ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(*circleEntityID2);
+			float radiusSum = firstCircle->Radius + secondCircle->Radius;
+
+			if (CollisionChecks::CircleVsCircle(firstCircleTransform->Position,
+			                                    secondCircleTransform->Position,
+			                                    radiusSum))
+			{
+				firstCircle->IsColliding = true;
+				secondCircle->IsColliding = true;
+
+				//Resolve Circle Vs Circle
+				glm::vec2 directionVector = secondCircleTransform->Position - firstCircleTransform->Position;
+				if (glm::length(directionVector) > 0.0f)
+				{
+					glm::vec2 contactNormal = glm::normalize(directionVector);
+					float penetrationDepth = radiusSum - glm::distance(firstCircleTransform->Position, secondCircleTransform->Position);
+
+					manifolds.emplace_back(firstCircleTransform, secondCircleTransform,
+						ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(*circleEntityID1),
+						ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(*circleEntityID2),
+						std::forward<glm::vec2>(contactNormal),
+						penetrationDepth);
+				}
+			}
+		}
+	}
+}
