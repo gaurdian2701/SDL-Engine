@@ -103,6 +103,7 @@ namespace CollisionChecks
 			const glm::vec2 edge = secondPoint - firstPoint;
 
 			glm::vec2 separatingAxis = glm::vec2(-edge.y, edge.x);
+			separatingAxis = glm::normalize(separatingAxis);
 
 			//Using the normal as the new axis, project all edges of both polygons onto that axis and find their
 			//max and min projections
@@ -205,6 +206,7 @@ namespace CollisionChecks
 
 			//The normal of the edge is taken as the separating axis
 			separatingAxis = glm::vec2(-edge.y, edge.x);
+			separatingAxis = glm::normalize(separatingAxis);
 
 			//Using the normal as the new axis, project all edges of both polygons onto that axis and find their
 			//max and min projections
@@ -218,7 +220,8 @@ namespace CollisionChecks
 			}
 
 			//Find the magnitude of separation
-			axisDepth = std::min(glm::length(maxCirclePointOnAxis - minPolygonPointOnAxis), glm::length(maxPolygonPointOnAxis - minCirclePointOnAxis));
+			axisDepth = std::min(glm::length(maxCirclePointOnAxis - minPolygonPointOnAxis),
+				glm::length(maxPolygonPointOnAxis - minCirclePointOnAxis));
 			if (axisDepth < minSeparationDepth)
 			{
 				minSeparationDepth = axisDepth;
@@ -244,6 +247,7 @@ namespace CollisionChecks
 
 		//Then, the vector from the center to the closest point becomes the separating axis
 		separatingAxis = circleCenter - *polygonPoints[closestPointIndex];
+		separatingAxis = glm::normalize(separatingAxis);
 
 		//Project again on new axis
 		ProjectPointsOnAxis(polygonPoints, separatingAxis, maxPolygonPointOnAxis, minPolygonPointOnAxis);

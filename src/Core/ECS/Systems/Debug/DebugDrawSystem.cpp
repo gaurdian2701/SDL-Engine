@@ -14,7 +14,7 @@ void Core::ECS::Systems::DebugDrawSystem::RegisterInterestedComponents()
 
 void Core::ECS::Systems::DebugDrawSystem::UpdateSystem(const float deltaTime)
 {
-    //Draw AABB Colliders
+    //Draw Box Colliders
     ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::BoxCollider2D>(
         [&](const Components::Transform* transform, const Components::BoxCollider2D* box2D)
         {

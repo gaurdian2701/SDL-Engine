@@ -32,8 +32,8 @@ namespace Components
             return inverseMass;
         }
 
-        glm::vec2 Velocity = glm::vec2(0.0f);
-        float Restitution = 1.0f;
+        glm::vec2 LinearVelocity = glm::vec2(0.0f);
+        float Restitution = 2.0f;
 
     private:
         float mass = 1.0f;

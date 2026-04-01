@@ -73,16 +73,17 @@ void Core::Editor::Update(const float deltaTime)
         }
     }
 
-    //Displaying Objects in Scene
-    ImGui::Begin("Debug");
-    ImGui::Text("FRAME RATE:");
+    ImGui::Begin("Debugs");
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)\n",
                 1000.0f / ImGui::GetIO().Framerate,
                 ImGui::GetIO().Framerate);
+    ImGui::End();
+
+    //Displaying Objects in Scene
+    ImGui::Begin("GAME OBJECT LIST:");
     ImGui::Separator();
     ImGui::Text("Number of Entities: %i\n", gameScene->GetGameObjectCount());
     ImGui::Separator();
-    ImGui::Text("GAME OBJECT LIST: ");
 
     for (auto& gameObject : gameObjectList)
     {
@@ -137,6 +138,7 @@ void Core::Editor::Update(const float deltaTime)
         gameScene->m_sceneIsPaused = !gameScene->m_sceneIsPaused;
     }
     ImGui::Text(gameScene->m_sceneIsPaused ? "Paused" : "Playing");
+    ImGui::DragFloat("Frame Rate", &m_deltaTimeInput, 1.0f, 10.0f, 1000.0f);
     ImGui::End();
 }
 #endif

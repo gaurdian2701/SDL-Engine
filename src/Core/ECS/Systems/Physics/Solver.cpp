@@ -7,9 +7,19 @@ void Core::ECS::Systems::Physics::Solver::Solve(const std::vector<CollisionManif
 {
 	for (auto& manifold : manifolds)
 	{
+		//default separation
+		if (!manifold.TransformA->Static)
+		{
+			manifold.TransformA->Position -= manifold.PenetrationDepth * 0.5f * manifold.ContactNormal;
+		}
+		if (!manifold.TransformB->Static)
+		{
+			manifold.TransformB->Position += manifold.PenetrationDepth * 0.5f * manifold.ContactNormal;
+		}
+
 		if (manifold.RigidbodyA && manifold.RigidbodyB)
 		{
-			glm::vec2 relativeVelocity = manifold.RigidbodyB->Velocity - manifold.RigidbodyA->Velocity;
+			glm::vec2 relativeVelocity = manifold.RigidbodyB->LinearVelocity - manifold.RigidbodyA->LinearVelocity;
 
 			float relativeVelocityAlongNormalScalar = glm::dot(relativeVelocity, manifold.ContactNormal);
 
@@ -33,33 +43,29 @@ void Core::ECS::Systems::Physics::Solver::Solve(const std::vector<CollisionManif
 
 			float inverseMassSum = 1 / (manifold.RigidbodyA->GetMass() + manifold.RigidbodyB->GetMass());
 			float ratio = 1 - manifold.RigidbodyA->GetMass() * inverseMassSum;
-			manifold.RigidbodyA->Velocity -= ratio * impulse;
+			manifold.RigidbodyA->LinearVelocity -= ratio * impulse;
 
 			ratio = 1 - manifold.RigidbodyB->GetMass() * inverseMassSum;
-			manifold.RigidbodyB->Velocity += ratio * impulse;
+			manifold.RigidbodyB->LinearVelocity += ratio * impulse;
 
 			//Do Positional correction to correct rigidbodies sinking into one another
 			//This solves edge case 2
-			const float positionalCorrectionPercentage = 0.8f;
+			const float positionalCorrectionPercentage = 1.0f;
 			const float slop = 0.01f;
 
 			//Move both objects along the collision normal by a % of penetration depth,
 			//and only move/separate them if the penetrationDepth is above a threshold which is the slop value
-			glm::vec2 correction = std::max(manifold.PenetrationDepth - slop, 0.0f) * inverseMassSum * positionalCorrectionPercentage * manifold.ContactNormal;
+			glm::vec2 correction = std::max(manifold.PenetrationDepth - slop, 0.0f) *
+				inverseMassSum * positionalCorrectionPercentage * manifold.ContactNormal;
 			manifold.TransformA->Position -= manifold.RigidbodyA->GetInverseMass() * correction;
 			manifold.TransformB->Position += manifold.RigidbodyB->GetInverseMass() * correction;
 		}
 		else
 		{
-			if (!manifold.TransformA->Static)
-			{
-				manifold.TransformA->Position -= manifold.PenetrationDepth * 0.5f * manifold.ContactNormal;
-			}
-			if (!manifold.TransformB->Static)
-			{
-				manifold.TransformB->Position += manifold.PenetrationDepth * 0.5f * manifold.ContactNormal;
-			}
+			//If we are not dealing with rigidbodies, simply separate both objects equally along the Contact Normal
+
 		}
 	}
 }
+
 

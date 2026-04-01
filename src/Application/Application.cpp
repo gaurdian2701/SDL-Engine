@@ -113,8 +113,7 @@ void Application::Run()
         CheckForQuitEvent();
 
         auto currentFrameTime = std::chrono::high_resolution_clock::now();
-        float deltaTime = std::chrono::duration<float>(currentFrameTime - lastFrameTime).count();
-        lastFrameTime = currentFrameTime;
+        const float deltaTime = std::chrono::duration<float>(currentFrameTime - lastFrameTime).count();
 
 #ifdef _DEBUG
         StartNewImGUIFrame();
@@ -130,6 +129,13 @@ void Application::Run()
 #endif
 
         SDL_RenderPresent(m_mainRenderer);
+
+#ifdef _DEBUG
+        //Stall until next frame update
+        while (std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - lastFrameTime).count() < 1 / m_editor->GetDeltaTimeInput())
+        {}
+#endif
+        lastFrameTime = currentFrameTime;
     }
 
     GetApplicationInstance()->EndApplication();
