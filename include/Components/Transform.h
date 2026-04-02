@@ -45,7 +45,6 @@ namespace Components
         glm::vec2 Position = glm::vec2(0.0f);
         glm::vec2 Scale = glm::vec2(1.0f);
         float Rotation = 0.0f;
-        bool Static = false;
 
     private:
         glm::vec2 up = glm::vec2(0.0f);

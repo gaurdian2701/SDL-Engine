@@ -1,5 +1,4 @@
 ﻿#include "Core/ECS/Systems/Physics/Solver.h"
-
 #include "Components/Rigidbody2D.h"
 #include "Components/Transform.h"
 
@@ -7,20 +6,28 @@ void Core::ECS::Systems::Physics::Solver::Solve(const std::vector<CollisionManif
 {
 	for (auto& manifold : manifolds)
 	{
-		//default separation
-		if (!manifold.TransformA->Static)
-		{
-			manifold.TransformA->Position -= manifold.PenetrationDepth * 0.5f * manifold.ContactNormal;
-		}
-		if (!manifold.TransformB->Static)
-		{
-			manifold.TransformB->Position += manifold.PenetrationDepth * 0.5f * manifold.ContactNormal;
-		}
-
 		if (manifold.RigidbodyA && manifold.RigidbodyB)
 		{
-			glm::vec2 relativeVelocity = manifold.RigidbodyB->LinearVelocity - manifold.RigidbodyA->LinearVelocity;
+			if (manifold.RigidbodyA->IsStatic() && manifold.RigidbodyB->IsStatic())
+			{
+				continue;
+			}
 
+			if (manifold.RigidbodyA->IsStatic())
+			{
+				manifold.TransformB->Position += manifold.PenetrationDepth * manifold.ContactNormal;
+			}
+			else if (manifold.RigidbodyB->IsStatic())
+			{
+				manifold.TransformA->Position -= manifold.PenetrationDepth * manifold.ContactNormal;
+			}
+			else
+			{
+				manifold.TransformA->Position -= manifold.PenetrationDepth * 0.5f * manifold.ContactNormal;
+				manifold.TransformB->Position += manifold.PenetrationDepth * 0.5f * manifold.ContactNormal;
+			}
+
+			glm::vec2 relativeVelocity = manifold.RigidbodyB->LinearVelocity - manifold.RigidbodyA->LinearVelocity;
 			float relativeVelocityAlongNormalScalar = glm::dot(relativeVelocity, manifold.ContactNormal);
 
 			//If it is positive, the rigidbodies are already separated, which means that
@@ -37,16 +44,14 @@ void Core::ECS::Systems::Physics::Solver::Solve(const std::vector<CollisionManif
 
 			float restitutionConstant = std::min(manifold.RigidbodyA->Restitution, manifold.RigidbodyB->Restitution);
 			float impulseScalar = -(1 + restitutionConstant) * relativeVelocityAlongNormalScalar;
+			float inverseMassA = manifold.RigidbodyA->GetInverseMass();
+			float inverseMassB = manifold.RigidbodyB->GetInverseMass();
 
-			impulseScalar /= manifold.RigidbodyA->GetInverseMass() + manifold.RigidbodyB->GetInverseMass();
+			impulseScalar /= inverseMassA + inverseMassB;
 			glm::vec2 impulse = impulseScalar * manifold.ContactNormal;
 
-			float inverseMassSum = 1 / (manifold.RigidbodyA->GetMass() + manifold.RigidbodyB->GetMass());
-			float ratio = 1 - manifold.RigidbodyA->GetMass() * inverseMassSum;
-			manifold.RigidbodyA->LinearVelocity -= ratio * impulse;
-
-			ratio = 1 - manifold.RigidbodyB->GetMass() * inverseMassSum;
-			manifold.RigidbodyB->LinearVelocity += ratio * impulse;
+			manifold.RigidbodyA->LinearVelocity -= inverseMassA * impulse;
+			manifold.RigidbodyB->LinearVelocity += inverseMassB * impulse;
 
 			//Do Positional correction to correct rigidbodies sinking into one another
 			//This solves edge case 2
@@ -55,15 +60,10 @@ void Core::ECS::Systems::Physics::Solver::Solve(const std::vector<CollisionManif
 
 			//Move both objects along the collision normal by a % of penetration depth,
 			//and only move/separate them if the penetrationDepth is above a threshold which is the slop value
-			glm::vec2 correction = std::max(manifold.PenetrationDepth - slop, 0.0f) *
-				inverseMassSum * positionalCorrectionPercentage * manifold.ContactNormal;
+			glm::vec2 correction = std::max(manifold.PenetrationDepth - slop, 0.0f) /
+				(inverseMassA + inverseMassB) * positionalCorrectionPercentage * manifold.ContactNormal;
 			manifold.TransformA->Position -= manifold.RigidbodyA->GetInverseMass() * correction;
 			manifold.TransformB->Position += manifold.RigidbodyB->GetInverseMass() * correction;
-		}
-		else
-		{
-			//If we are not dealing with rigidbodies, simply separate both objects equally along the Contact Normal
-
 		}
 	}
 }

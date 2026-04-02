@@ -20,7 +20,6 @@ void Core::ECS::Systems::PhysicsSystem::ProcessInitializationQueue()
 	for (auto entity : m_initializationQueue)
 	{
 		auto rigidbody = ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(entity);
-		rigidbody->LinearVelocity += m_gravity;
 	}
 }
 
@@ -50,7 +49,8 @@ void Core::ECS::Systems::PhysicsSystem::UpdateRigidbodies(const float physicsTim
 	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::Rigidbody2D>(
 		[&](Components::Transform* transform, Components::Rigidbody2D* rigidbody)
 		{
-			rigidbody->LinearVelocity += m_gravity * physicsTimeStep;
+			rigidbody->LinearVelocity += rigidbody->Acceleration * physicsTimeStep;
+			// rigidbody->LinearVelocity += m_gravity * physicsTimeStep;
 			transform->Position += rigidbody->LinearVelocity * physicsTimeStep;
 		});
 }
