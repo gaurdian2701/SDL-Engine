@@ -16,34 +16,30 @@ void Core::ECS::Systems::ParticleSystem::BeginSystem()
 	m_minCartesianLimits = GetMinCartesianLimits();
 }
 
-void Core::ECS::Systems::ParticleSystem::ProcessInitializationQueue()
+void Core::ECS::Systems::ParticleSystem::OnComponentAdded(const std::uint32_t entityID)
 {
-	for (auto entityID : m_initializationQueue)
+	auto transform = ECSManager::GetInstance().GetComponent<Components::Transform>(entityID);
+	auto particleEmitter = ECSManager::GetInstance().GetComponent<Components::ParticleEmitter>(entityID);
+
+	std::uniform_int_distribution<int> randomDistribution(-particleEmitter->MaxDeviation, particleEmitter->MaxDeviation);
+
+	for (auto &particle: particleEmitter->Particles)
 	{
-		auto transform = ECSManager::GetInstance().GetComponent<Components::Transform>(entityID);
-		auto particleEmitter = ECSManager::GetInstance().GetComponent<Components::ParticleEmitter>(entityID);
+		//Simulation
+		//Set particle's initial position according to the initial velocity.
+		//The positions are relative to the particle emitter's world position
+		particle.CurrentPosition = transform->Position + particleEmitter->StartingOffset +
+								   glm::vec2(randomDistribution(m_randomOffsetGenerator),
+											 randomDistribution(m_randomOffsetGenerator));
 
-		std::uniform_int_distribution<int> randomDistribution(-particleEmitter->MaxDeviation, particleEmitter->MaxDeviation);
-
-		for (auto &particle: particleEmitter->Particles)
-		{
-			//Simulation
-			//Set particle's initial position according to the initial velocity.
-			//The positions are relative to the particle emitter's world position
-			particle.CurrentPosition = transform->Position + particleEmitter->StartingOffset +
-									   glm::vec2(randomDistribution(m_randomOffsetGenerator),
-												 randomDistribution(m_randomOffsetGenerator));
-
-			//Rendering
-			RenderParticle(particleEmitter, particle);
-		}
+		//Rendering
+		RenderParticle(particleEmitter, particle);
 	}
 }
 
+
 void Core::ECS::Systems::ParticleSystem::UpdateSystem(const float deltaTime)
 {
-	System::UpdateSystem(deltaTime);
-
 	glm::vec2 particleVelocity = glm::vec2(0.0f);
 
 	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform,

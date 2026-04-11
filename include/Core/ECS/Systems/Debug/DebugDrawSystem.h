@@ -10,7 +10,6 @@ namespace Core::ECS::Systems
         ~DebugDrawSystem() override = default;
 
         void RegisterInterestedComponents() override;
-        void ProcessInitializationQueue() override{}
         void UpdateSystem(const float deltaTime) override;
     };
 }

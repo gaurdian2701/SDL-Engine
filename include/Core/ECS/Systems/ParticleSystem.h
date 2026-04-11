@@ -19,7 +19,7 @@ namespace Core::ECS::Systems
 
 		void RegisterInterestedComponents() override;
 		void BeginSystem() override;
-        void ProcessInitializationQueue() override;
+		void OnComponentAdded(const std::uint32_t entityID) override;
 		void UpdateSystem(const float deltaTime) override;
 		void EndSystem() override{}
 

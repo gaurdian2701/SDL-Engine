@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include <cmath>
-
 #include "vec2.hpp"
 
 namespace Core::MathHelpers

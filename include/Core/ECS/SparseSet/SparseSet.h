@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <vector>
 #include "ISparseSet.h"
-#include "ECSData.h"
+#include "Core/ECS/ECSData.h"
 
 namespace Core::ECS
 {
@@ -12,10 +12,7 @@ namespace Core::ECS
 	public:
 		SparseSet(const std::uint32_t someMaxEntityCount) : m_maxEntityCount(someMaxEntityCount)
 		{
-			m_sparseEntityArray.resize(m_maxEntityCount, INVALID_ENTITY_ID);
-			m_sparseEntityArray.reserve(m_maxEntityCount/2);
-			m_denseEntityArray.reserve(m_maxEntityCount);
-			m_denseComponentArray.reserve(m_maxEntityCount);
+			ReserveSpaceForEntities(someMaxEntityCount);
 		}
 
 		~SparseSet() override
@@ -23,10 +20,6 @@ namespace Core::ECS
 			m_sparseEntityArray.clear();
 			m_denseEntityArray.clear();
 			m_denseComponentArray.clear();
-
-			m_sparseEntityArray.shrink_to_fit();
-			m_denseEntityArray.shrink_to_fit();
-			m_denseComponentArray.shrink_to_fit();
 		}
 
 		void AddComponentToEntity(const std::uint32_t entityID, ComponentTypeUsedBySparseSet&& component)
@@ -82,6 +75,25 @@ namespace Core::ECS
 		std::vector<ComponentTypeUsedBySparseSet>& GetDenseComponentArray()
 		{
 			return m_denseComponentArray;
+		}
+
+		void ReserveSpaceForEntities(std::uint32_t someEntityCount)
+		{
+			m_sparseEntityArray.resize(someEntityCount, INVALID_ENTITY_ID);
+			m_sparseEntityArray.reserve(someEntityCount * 0.5f);
+			m_denseEntityArray.reserve(someEntityCount);
+			m_denseComponentArray.reserve(someEntityCount);
+		}
+
+		void ClearSparseSet()
+		{
+			m_sparseEntityArray.clear();
+			m_denseEntityArray.clear();
+			m_denseComponentArray.clear();
+
+			m_sparseEntityArray.resize(m_maxEntityCount);
+			m_denseEntityArray.resize(m_maxEntityCount);
+			m_denseComponentArray.resize(m_maxEntityCount);
 		}
 
 	private:

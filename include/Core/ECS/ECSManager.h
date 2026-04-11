@@ -28,7 +28,9 @@ namespace Core::ECS
 		}
 
 		void InitializeManager(uint32_t someMaxEntities);
+
 		void BeginSystems();
+
 		void UpdateManager(const float deltaTime);
 #ifdef  _DEBUG
 		void DebugUpdateManager(const float deltaTime, bool scenePaused);
@@ -76,11 +78,13 @@ namespace Core::ECS
 					->AddComponentToEntity(someEntityID, std::forward<T>(m_componentFactory.CreateComponent<T>()));
 
 			m_entityBitSetMap[someEntityID].set(GetGeneratedComponentTypeIndex<T>(*this), true);
-			std::bitset<MAX_COMPONENT_TYPES> componentsBitSetForEntity = m_entityBitSetMap[someEntityID];
 
-			for (auto system: m_systemsList) {
-				if ((componentsBitSetForEntity & system->m_systemBitSet) == system->m_systemBitSet) {
-					system->m_initializationQueue.insert(someEntityID);
+			std::bitset<MAX_COMPONENT_TYPES> componentsBitSetForEntity = m_entityBitSetMap[someEntityID];
+			for (auto system: m_systemsList)
+			{
+				if ((componentsBitSetForEntity & system->m_systemBitSet) == system->m_systemBitSet)
+				{
+					system->OnComponentAdded(someEntityID);
 				}
 			}
 		}
@@ -88,6 +92,16 @@ namespace Core::ECS
 		template<typename T>
 		void RemoveComponent(const std::uint32_t someEntityID)
 		{
+			std::bitset<MAX_COMPONENT_TYPES> componentsBitSetForEntity = m_entityBitSetMap[someEntityID];
+
+			for (auto system: m_systemsList)
+			{
+				if ((componentsBitSetForEntity & system->m_systemBitSet) != system->m_systemBitSet)
+				{
+					system->OnComponentRemoved(someEntityID);
+				}
+			}
+
 			dynamic_cast<SparseSet<T> *>(m_componentPoolMap[std::type_index(typeid(T))])
 					->RemoveComponentFromEntity(someEntityID);
 			m_entityBitSetMap[someEntityID].set(GetGeneratedComponentTypeIndex<T>(*this), false);
@@ -99,7 +113,8 @@ namespace Core::ECS
 			auto componentPool = GetComponentPool<T>();
 			uint32_t denseIndex = componentPool->GetSparseEntityArray()[someEntityID];
 
-			if (denseIndex == INVALID_ENTITY_ID) {
+			if (denseIndex == INVALID_ENTITY_ID)
+			{
 				return nullptr;
 			}
 			return &componentPool->GetDenseComponentArray()[denseIndex];
@@ -122,7 +137,7 @@ namespace Core::ECS
 		}
 
 		template<typename FirstComponentType, typename... OtherComponentTypes>
-		const std::tuple<std::vector<std::uint32_t>::iterator, std::vector<std::uint32_t>&> GetView()
+		const std::tuple<std::vector<std::uint32_t>::iterator, std::vector<std::uint32_t> &> GetView()
 		{
 			//By default, smallest entity array is the entity array of FirstComponentType
 			std::uint32_t smallestEntityArraySize = UINT32_MAX;
@@ -136,14 +151,15 @@ namespace Core::ECS
 				auto &denseEntityArray = m_componentPoolMap[std::type_index(typeid(OtherComponentTypes))]->
 						GetDenseEntityArray();
 				if (const int denseEntityArraySize = denseEntityArray.size();
-					denseEntityArraySize < smallestEntityArraySize && denseEntityArraySize > 0) {
+					denseEntityArraySize < smallestEntityArraySize && denseEntityArraySize > 0)
+				{
 					smallestEntityArraySize = denseEntityArraySize;
 					smallestEntityArrayTypeIndex = typeid(OtherComponentTypes);
 					smallestEntityArray = &denseEntityArray;
 				}
 			}(), ...);
 
-			return std::forward_as_tuple(smallestEntityArray->begin()+1, *smallestEntityArray);
+			return std::forward_as_tuple(smallestEntityArray->begin() + 1, *smallestEntityArray);
 		}
 
 		//Query Dense Component Arrays with the help of Component Types
@@ -166,7 +182,8 @@ namespace Core::ECS
 			const auto [it, entities] = GetView<FirstComponentType, OtherComponentTypes...>();
 
 			//Query dense component arrays and pass them into the functor
-			for (uint32_t index = 1; index < entities.size(); ++index) {
+			for (uint32_t index = 1; index < entities.size(); ++index)
+			{
 				uint32_t entityID = entities[index];
 				someFunctor(entityID, GetComponent<FirstComponentType>(entityID),
 				            GetComponent<OtherComponentTypes>(entityID)...);
@@ -205,7 +222,8 @@ namespace Core::ECS
 			static bool TryGenerateComponentRemovalFunctionHandle =
 					RegisterComponentRemovalFunctionHandle<ComponentType>(someManager, componentTypeIndex);
 
-			if (componentTypeIndex == MAX_COMPONENT_TYPES) {
+			if (componentTypeIndex == MAX_COMPONENT_TYPES)
+			{
 				return INVALID_ENTITY_ID;
 			}
 			return componentTypeIndex;
@@ -214,8 +232,10 @@ namespace Core::ECS
 		template<std::derived_from<System> SystemType>
 		SystemType &GetSystem()
 		{
-			for (auto &system: m_systemsList) {
-				if (typeid(system) == typeid(SystemType)) {
+			for (auto &system: m_systemsList)
+			{
+				if (typeid(system) == typeid(SystemType))
+				{
 					return *static_cast<SystemType *>(system);
 				}
 			}
@@ -229,6 +249,7 @@ namespace Core::ECS
 
 	private:
 		void CreateSystems();
+
 		void InitializeSystems();
 
 	private:

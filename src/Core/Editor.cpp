@@ -1,7 +1,7 @@
 ﻿#include "Core/Editor.h"
 #include "vec2.hpp"
 #include "Application/Application.h"
-#include "Components/BoxCollider2D.h"
+#include "Components/PolygonCollider2D.h"
 #include "Components/CircleCollider2D.h"
 #include "Components/Rigidbody2D.h"
 #include "Components/Transform.h"
@@ -103,9 +103,9 @@ void Core::Editor::Update(const float deltaTime)
                 ImGui::DragFloat2("Scale", &transform->Scale.x, 0.5f, -100.0f, 100.0f);
                 ImGui::DragFloat("Rotation", &transform->Rotation, 0.5f, -100.0f, 100.0f);
 
-                if (auto boxCollider = gameObject->GetComponent<Components::BoxCollider2D>())
+                if (auto polygonCollider = gameObject->GetComponent<Components::PolygonCollider2D>())
                 {
-                    boxCollider->SetHalfExtents(glm::vec2(transform->Scale.x * 0.5f, transform->Scale.y * 0.5f));
+                    polygonCollider->SetBoxHalfExtents(glm::vec2(transform->Scale.x * 0.5f, transform->Scale.y * 0.5f));
                 }
 
                 if (auto circleCollider = gameObject->GetComponent<Components::CircleCollider2D>())

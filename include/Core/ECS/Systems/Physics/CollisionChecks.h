@@ -3,21 +3,14 @@
 
 namespace CollisionChecks
 {
-	static inline bool AABBVsAABB(const glm::vec2& pos1,
-	const glm::vec2& pos2,
-	const glm::vec2& halfExtents1,
-	const glm::vec2& halfExtents2)
+	static inline bool AABBVsAABB(const Components::AABB& aabb1, const Components::AABB& aabb2)
 	{
-		//Using SAT(Separating Axis Theorem)
-		//box1's maxX is lesser than box2's minX?
-		if (pos1.x + halfExtents1.x < pos2.x - halfExtents2.x ||
-			pos1.x - halfExtents1.x > pos2.x + halfExtents2.x)
+		if (aabb1.MaxPoint.x < aabb2.MinPoint.x || aabb1.MinPoint.x > aabb2.MaxPoint.x)
 		{
 			return false;
 		}
-		//box1's maxY is lesser than box2's minY?
-		if (pos1.y + halfExtents1.y < pos2.y - halfExtents2.y ||
-			pos1.y - halfExtents1.y > pos2.y + halfExtents2.y)
+
+		if (aabb1.MaxPoint.y < aabb2.MinPoint.y || aabb1.MinPoint.y > aabb2.MaxPoint.y)
 		{
 			return false;
 		}
@@ -34,7 +27,7 @@ namespace CollisionChecks
 			(center1.y - center2.y) * (center1.y - center2.y);
 	}
 
-	void ProjectPointsOnAxis(const std::vector<const glm::vec2*>& points,
+	static inline void ProjectPointsOnAxis(const std::vector<glm::vec2>& points,
 		const glm::vec2& axis,
 		float& maxProjectionValueOnAxis,
 		float& minProjectionValueOnAxis)
@@ -45,7 +38,7 @@ namespace CollisionChecks
 		for (uint32_t pointIndex = 0; pointIndex < points.size(); pointIndex++)
 		{
 			//"Project" the point on the axis using dot product
-			float projectionOnAxis = glm::dot(*points[pointIndex], axis);
+			float projectionOnAxis = glm::dot(points[pointIndex], axis);
 			if (projectionOnAxis > max)
 			{
 				max = projectionOnAxis;
@@ -60,7 +53,7 @@ namespace CollisionChecks
 		minProjectionValueOnAxis = min;
 	}
 
-	void ProjectCircleOnAxis(const glm::vec2& center,
+	static inline void ProjectCircleOnAxis(const glm::vec2& center,
 		float radius,
 		const glm::vec2& axis,
 		float& maxProjectionValueOnAxis,
@@ -86,8 +79,8 @@ namespace CollisionChecks
 
 	static inline bool PolygonVsPolygon(const glm::vec2& polygonCenterA,
 		const glm::vec2& polygonCenterB,
-		const std::vector<const glm::vec2*>& polygonPointsA,
-		const std::vector<const glm::vec2*>& polygonPointsB,
+		const std::vector<glm::vec2>& polygonPointsA,
+		const std::vector<glm::vec2>& polygonPointsB,
 		float& penetrationDepth,
 		glm::vec2& contactNormal)
 	{
@@ -98,8 +91,8 @@ namespace CollisionChecks
 		for (uint32_t pointIndex = 0; pointIndex < polygonPointsA.size(); pointIndex++)
 		{
 			//Find normal of edge between first and next point
-			const glm::vec2& firstPoint = *polygonPointsA[pointIndex];
-			const glm::vec2& secondPoint = *polygonPointsA[(pointIndex+1)%polygonPointsA.size()];
+			const glm::vec2& firstPoint = polygonPointsA[pointIndex];
+			const glm::vec2& secondPoint = polygonPointsA[(pointIndex+1)%polygonPointsA.size()];
 			const glm::vec2 edge = secondPoint - firstPoint;
 
 			glm::vec2 separatingAxis = glm::vec2(-edge.y, edge.x);
@@ -130,8 +123,8 @@ namespace CollisionChecks
 		for (uint32_t pointIndex = 0; pointIndex < polygonPointsB.size(); pointIndex++)
 		{
 			//Find normal of edge between first and next point
-			const glm::vec2& firstPoint = *polygonPointsB[pointIndex];
-			const glm::vec2& secondPoint = *polygonPointsB[(pointIndex+1)%polygonPointsB.size()];
+			const glm::vec2& firstPoint = polygonPointsB[pointIndex];
+			const glm::vec2& secondPoint = polygonPointsB[(pointIndex+1)%polygonPointsB.size()];
 			const glm::vec2 edge = secondPoint - firstPoint;
 			glm::vec2 axisNormal = glm::vec2(-edge.y, edge.x);
 
@@ -183,7 +176,7 @@ namespace CollisionChecks
 	}
 
 	static inline bool PolygonVsCircle(const glm::vec2& polygonCenter,
-		const std::vector<const glm::vec2*>& polygonPoints,
+		const std::vector<glm::vec2>& polygonPoints,
 		const glm::vec2& circleCenter,
 		float circleRadius,
 		float& penetrationDepth,
@@ -200,8 +193,8 @@ namespace CollisionChecks
 		for (uint32_t pointIndex = 0; pointIndex < polygonPoints.size(); pointIndex++)
 		{
 			//Find normal of edge between first and next point
-			const glm::vec2& firstPoint = *polygonPoints[pointIndex];
-			const glm::vec2& secondPoint = *polygonPoints[(pointIndex+1)%polygonPoints.size()];
+			const glm::vec2& firstPoint = polygonPoints[pointIndex];
+			const glm::vec2& secondPoint = polygonPoints[(pointIndex+1)%polygonPoints.size()];
 			const glm::vec2 edge = secondPoint - firstPoint;
 
 			//The normal of the edge is taken as the separating axis
@@ -235,7 +228,7 @@ namespace CollisionChecks
 		//Now to check for collision from the circle's end, first find the point on the polygon that is closest to the circle.
 		for (uint32_t pointIndex = 0; pointIndex < polygonPoints.size(); pointIndex++)
 		{
-			const glm::vec2& point = *polygonPoints[pointIndex];
+			const glm::vec2& point = polygonPoints[pointIndex];
 			float pointDistance = glm::distance(point, circleCenter);
 			if (pointDistance < minDistance)
 			{
@@ -246,7 +239,7 @@ namespace CollisionChecks
 		}
 
 		//Then, the vector from the center to the closest point becomes the separating axis
-		separatingAxis = circleCenter - *polygonPoints[closestPointIndex];
+		separatingAxis = circleCenter - polygonPoints[closestPointIndex];
 		separatingAxis = glm::normalize(separatingAxis);
 
 		//Project again on new axis

@@ -5,7 +5,7 @@
 #include "Components/Transform.h"
 #include "Components/Renderer2D.h"
 #include "imgui.h"
-#include "Components/BoxCollider2D.h"
+#include "Components/PolygonCollider2D.h"
 #include "Components/CircleCollider2D.h"
 #include "Components/Rigidbody2D.h"
 #include "Components/UITexture.h"
@@ -36,7 +36,7 @@ void Core::GameScene::RegisterComponents()
 	GetECSManager().RegisterComponent<Components::Transform>();
 	GetECSManager().RegisterComponent<Components::Renderer2D>();
 	GetECSManager().RegisterComponent<Components::ParticleEmitter>();
-	GetECSManager().RegisterComponent<Components::BoxCollider2D>();
+	GetECSManager().RegisterComponent<Components::PolygonCollider2D>();
 	GetECSManager().RegisterComponent<Components::CircleCollider2D>();
 	GetECSManager().RegisterComponent<Components::Rigidbody2D>();
 	GetECSManager().RegisterComponent<Components::UITexture>();

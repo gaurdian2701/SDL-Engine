@@ -14,21 +14,43 @@ namespace Debug::DebugDrawHelpers
     float b,
     float a)
     {
-        static SDL_FPoint* m_boxDrawPoints = new SDL_FPoint[5];
+        static SDL_FPoint* boxDrawPoints = new SDL_FPoint[5];
 
         glm::vec2 topLeftScreenCoordinates = Core::WorldToScreen(topLeft);
         glm::vec2 topRightScreenCoordinates = Core::WorldToScreen(topRight);
         glm::vec2 bottomRightScreenCoordinates = Core::WorldToScreen(bottomRight);
         glm::vec2 bottomLeftScreenCoordinates = Core::WorldToScreen(bottomLeft);
 
-        m_boxDrawPoints[0] = SDL_FPoint(topLeftScreenCoordinates.x, topLeftScreenCoordinates.y);
-        m_boxDrawPoints[1] = SDL_FPoint(topRightScreenCoordinates.x, topRightScreenCoordinates.y);
-        m_boxDrawPoints[2] = SDL_FPoint(bottomRightScreenCoordinates.x, bottomRightScreenCoordinates.y);
-        m_boxDrawPoints[3] = SDL_FPoint(bottomLeftScreenCoordinates.x, bottomLeftScreenCoordinates.y);
-        m_boxDrawPoints[4] = m_boxDrawPoints[0];
+        boxDrawPoints[0] = SDL_FPoint(topLeftScreenCoordinates.x, topLeftScreenCoordinates.y);
+        boxDrawPoints[1] = SDL_FPoint(topRightScreenCoordinates.x, topRightScreenCoordinates.y);
+        boxDrawPoints[2] = SDL_FPoint(bottomRightScreenCoordinates.x, bottomRightScreenCoordinates.y);
+        boxDrawPoints[3] = SDL_FPoint(bottomLeftScreenCoordinates.x, bottomLeftScreenCoordinates.y);
+        boxDrawPoints[4] = boxDrawPoints[0];
 
         SDL_SetRenderDrawColor(Application::GetCoreInstance().GetMainRenderer(), r, g, b, a);
-        SDL_RenderLines(Application::GetCoreInstance().GetMainRenderer(), m_boxDrawPoints, 5);
+        SDL_RenderLines(Application::GetCoreInstance().GetMainRenderer(), boxDrawPoints, 5);
+    }
+
+    static inline void DrawDebugPolygon(const std::vector<glm::vec2>& points,
+        float r,
+        float g,
+        float b,
+        float a)
+    {
+        SDL_FPoint* polygonDrawPoints = new SDL_FPoint[points.size()+1];
+        glm::vec2 screenCoordinates = Core::WorldToScreen(glm::vec2(0.0f));
+
+        int pointIndex = 0;
+
+        for (pointIndex; pointIndex < points.size(); pointIndex++)
+        {
+            screenCoordinates = Core::WorldToScreen(points[pointIndex]);
+            polygonDrawPoints[pointIndex] = SDL_FPoint(screenCoordinates.x, screenCoordinates.y);
+        }
+        polygonDrawPoints[pointIndex] = polygonDrawPoints[0];
+
+        SDL_SetRenderDrawColor(Application::GetCoreInstance().GetMainRenderer(), r, g, b, a);
+        SDL_RenderLines(Application::GetCoreInstance().GetMainRenderer(), polygonDrawPoints, points.size()+1);
     }
 
     static inline void DrawCirclePoints(float xc, float yc, float x, float y)

@@ -15,8 +15,6 @@ void Core::ECS::Systems::RenderingSystem::RegisterInterestedComponents()
 
 void Core::ECS::Systems::RenderingSystem::UpdateSystem(const float deltaTime)
 {
-	System::UpdateSystem(deltaTime);
-
 	//Render regular 2D sprites
 	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::Renderer2D>(
 		[&](const Components::Transform* transform, Components::Renderer2D* renderer2D)

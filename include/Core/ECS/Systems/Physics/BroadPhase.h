@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include <vector>
 
+struct CollisionPair;
+
 namespace Core::ECS::Systems::Physics
 {
 	class BroadPhase
@@ -8,6 +10,7 @@ namespace Core::ECS::Systems::Physics
 	public:
 		BroadPhase() = default;
 		virtual ~BroadPhase() = default;
-		virtual void DoBroadPhase() = 0;
+
+		virtual void GeneratePairs(std::vector<CollisionPair>& collisionPairs) = 0;
 	};
 }

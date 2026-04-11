@@ -16,24 +16,17 @@ namespace Core::ECS
 		virtual ~System() = default;
 		virtual void RegisterInterestedComponents() = 0;
 		virtual void BeginSystem(){}
-		virtual void ProcessInitializationQueue() = 0;
-		virtual void UpdateSystem(const float deltaTime)
-		{
-			ProcessInitializationQueue();
-			m_initializationQueue.clear();
-		}
+		virtual void OnComponentAdded(const std::uint32_t entityID){}
+		virtual void OnComponentRemoved(const std::uint32_t entityID){}
+		virtual void UpdateSystem(const float deltaTime) = 0;
 		virtual void EndSystem(){}
-		void CleanupSystem()
-		{
-			m_initializationQueue.clear();
-		}
+		virtual void CleanupSystem(){}
 
 	protected:
 #ifdef _DEBUG
 		bool m_shouldRunOnlyWhilePlaying = false;
 #endif
 		std::bitset<MAX_COMPONENT_TYPES> m_systemBitSet = std::bitset<MAX_COMPONENT_TYPES>();
-		std::set<uint32_t> m_initializationQueue = std::set<uint32_t>();
 		friend class ECSManager;
 	};
 }

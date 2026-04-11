@@ -31,24 +31,15 @@ add_library(
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/CoreSystems/ResourceManager.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/CoreSystems/InputSystem.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/ParticleSystem.cpp
-        src/Core/ECS/Systems/Physics/PhysicsSystem.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/SceneManager.cpp
-        include/Core/ECS/Systems/Physics/CollisionChecks.h
-        include/Core/ECS/Systems/Debug/DebugDrawSystem.h
-        src/Core/ECS/Systems/Debug/DebugDrawSystem.cpp
-        include/Core/Editor.h
-        src/Core/Editor.cpp
-        include/Core/ECS/Systems/Physics/CollisionData.h
-        include/Core/ECS/Systems/Physics/BroadPhase.h
-        include/Components/BoxCollider2D.h
-        include/Components/CircleCollider2D.h
-        include/Core/ECS/Systems/Physics/NarrowPhase.h
-        src/Core/ECS/Systems/Physics/NarrowPhase.cpp
-        include/Core/MathHelpers.h
-        include/Core/ECS/Systems/Debug/DebugDrawHelpers.h
-        include/Core/ECS/Systems/Physics/Solver.h
-        include/Core/ECS/Systems/Physics/CollisionManifold.h
-        src/Core/ECS/Systems/Physics/Solver.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/Physics/PhysicsSystem.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/SceneManager.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/Debug/DebugDrawSystem.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/Editor.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/Physics/NarrowPhase.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/Physics/Solver.cpp
+        include/Components/AABB.h
+        include/Core/ECS/Systems/Physics/NaiveBroadPhase.h
+        src/Core/ECS/Systems/Physics/NaiveBroadPhase.cpp
 )
 
 EnableASANCompileOptions(${ENGINE_BINARY_NAME})

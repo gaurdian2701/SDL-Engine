@@ -1,5 +1,5 @@
 ﻿#include "Core/ECS/Systems/Debug/DebugDrawSystem.h"
-#include "Components/BoxCollider2D.h"
+#include "Components/PolygonCollider2D.h"
 #include "Components/CircleCollider2D.h"
 #include "Components/Transform.h"
 #include "Core/ECS/ECSManager.h"
@@ -8,31 +8,23 @@
 void Core::ECS::Systems::DebugDrawSystem::RegisterInterestedComponents()
 {
     ECSManager::GetInstance().RegisterInterestedComponentsForSystem<Components::Transform,
-                                                                    Components::BoxCollider2D,
+                                                                    Components::PolygonCollider2D,
                                                                     Components::CircleCollider2D>(this);
 }
 
 void Core::ECS::Systems::DebugDrawSystem::UpdateSystem(const float deltaTime)
 {
     //Draw Box Colliders
-    ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::BoxCollider2D>(
-        [&](const Components::Transform* transform, const Components::BoxCollider2D* box2D)
+    ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::PolygonCollider2D>(
+        [&](const Components::Transform* transform, const Components::PolygonCollider2D* polygon2D)
         {
-            if (box2D->IsColliding)
+            if (polygon2D->IsColliding)
             {
-                Debug::DebugDrawHelpers::DrawDebugBox(box2D->GetTopLeftPoint(),
-                                                      box2D->GetTopRightPoint(),
-                                                      box2D->GetBottomRightPoint(),
-                                                      box2D->GetBottomLeftPoint(),
-                                                      255, 0, 0, 255);
+                Debug::DebugDrawHelpers::DrawDebugPolygon(polygon2D->GetPoints(), 255, 0, 0, 255);
             }
             else
             {
-                Debug::DebugDrawHelpers::DrawDebugBox(box2D->GetTopLeftPoint(),
-                                                      box2D->GetTopRightPoint(),
-                                                      box2D->GetBottomRightPoint(),
-                                                      box2D->GetBottomLeftPoint(),
-                                                      0, 255, 0, 255);
+                Debug::DebugDrawHelpers::DrawDebugPolygon(polygon2D->GetPoints(), 0, 255, 0, 255);
             }
         });
 
