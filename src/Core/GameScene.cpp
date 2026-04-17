@@ -9,7 +9,8 @@
 #include "Components/CircleCollider2D.h"
 #include "Components/Rigidbody2D.h"
 #include "Components/UITexture.h"
-#include "Core/HelperFunctions.h"
+#include "Core/ScreenHelperFunctions.h"
+#include "Core/CoreSystems/InputSystem.h"
 #include "Core/CoreSystems/ResourceManager.h"
 #include "Scene/SceneManager.h"
 
@@ -20,8 +21,8 @@ Core::GameScene::GameScene(const std::uint32_t maxEntitiesInScene)
 	RegisterComponents();
 
 	m_gameObjectsInScene.reserve(maxEntitiesInScene);
-	m_minCartesianLimits = GetMinCartesianLimits();
-	m_maxCartesianLimits = GetMaxCartesianLimits();
+	m_minCartesianLimits = ScreenHelperFunctions::GetMinCartesianLimits();
+	m_maxCartesianLimits = ScreenHelperFunctions::GetMaxCartesianLimits();
 	m_maxEntityCount = maxEntitiesInScene;
 }
 
@@ -81,6 +82,12 @@ void Core::GameScene::Start()
 
 	//Start ECS Systems
 	ECS::ECSManager::GetInstance().BeginSystems();
+}
+
+glm::vec2 Core::GameScene::GetMouseWorldCoords()
+{
+	const glm::vec2& mouseWorldCoords = ScreenHelperFunctions::ScreenToWorld(Input::InputSystem::GetInstance().GetMouseScreenCoords());
+	return ScreenHelperFunctions::ScreenToWorld(mouseWorldCoords);
 }
 
 void Core::GameScene::Update(const float deltaTime)

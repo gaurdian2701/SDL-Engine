@@ -8,25 +8,33 @@ namespace Components
 	struct CircleCollider2D
 	{
 		CircleCollider2D() = default;
-		explicit CircleCollider2D(float someRadius)
-		{
-			Radius = someRadius;
-		}
 		~CircleCollider2D() = default;
 
 		void Initialize(const glm::vec2& someCenter, float someRadius)
 		{
-			Center = someCenter;
-			Radius = someRadius;
-			aabb.MinPoint = Center - Radius;
-			aabb.MaxPoint = Center + Radius;
+			center = someCenter;
+			radius = someRadius;
+			UpdateAABB();
 		}
 
-		void UpdatePosition(const glm::vec2& newPos)
+		void SetPosition(const glm::vec2& newPos)
 		{
-			if (glm::length(newPos - Center) > 0.1f)
+			if (glm::length(newPos - center) > 0.1f)
 			{
-				Center = newPos;
+				center = newPos;
+				UpdateAABB();
+			}
+		}
+
+		void SetRadius(const float newRadius)
+		{
+			if (newRadius > 0.0f)
+			{
+				if (std::abs(newRadius - radius) > 0.1f)
+				{
+					radius = newRadius;
+					UpdateAABB();
+				}
 			}
 		}
 
@@ -35,11 +43,34 @@ namespace Components
 			return aabb;
 		}
 
-		glm::vec2 Center = glm::vec2(0.0f);
-		float Radius = 1.0f;
+		float GetRadius() const
+		{
+			return radius;
+		}
+
+		const glm::vec2& GetCenter() const
+		{
+			return center;
+		}
+
+	private:
+		void UpdateAABB()
+		{
+			aabb.MinPoint = center - radius;
+			aabb.MaxPoint = center + radius;
+		}
+
+		float CalculateMomentOfInertia(float mass) const
+		{
+			return mass * radius * radius * 0.5f;
+		}
+
+	public:
 		bool IsColliding = false;
 
 	private:
 		AABB aabb = AABB();
+		glm::vec2 center = glm::vec2(0.0f);
+		float radius = 1.0f;
 	};
 }

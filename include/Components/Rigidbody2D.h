@@ -55,16 +55,18 @@ namespace Components
             return isStatic;
         }
 
-        void AddForce(const glm::vec2&& someForce)
+        void AddForce(const glm::vec2& someForce)
         {
-            Acceleration += inverseMass * someForce;
+            LinearAcceleration += inverseMass * someForce;
         }
 
+    public:
         glm::vec2 LinearVelocity = glm::vec2(0.0f);
-        glm::vec2 Acceleration = glm::vec2(0.0f);
-        float Restitution = 2.0f;
+        glm::vec2 LinearAcceleration = glm::vec2(0.0f);
+        float Restitution = 0.1f;
 
     private:
+        float momentOfInertia = 0.0f;
         float mass = 1.0f;
         float inverseMass = 1.0f;
         bool isStatic = false;

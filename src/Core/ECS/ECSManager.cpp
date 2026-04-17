@@ -1,8 +1,8 @@
 ﻿#include "Core/ECS/ECSManager.h"
 #include "Core/ECS/Systems/ParticleSystem.h"
-#include "Core/ECS/Systems/Physics/PhysicsSystem.h"
+#include "../../../include/Core/ECS/Systems/PhysicsSystem.h"
 #include "Core/ECS/Systems/RenderingSystem.h"
-#include "Core/ECS/Systems/Debug/DebugDrawSystem.h"
+#include "../../../include/Core/ECS/Systems/DebugDrawSystem.h"
 
 std::vector<void(*)(Core::ECS::ECSManager &, const std::uint32_t)>&
 Core::ECS::ECSManager::GetComponentRemovalHandlesArray()

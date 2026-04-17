@@ -27,6 +27,7 @@ public:
 
 	static Application& GetCoreInstance();
 	static Scene::SceneManager& GetSceneManager();
+	float GetDeltaTime() const;
 
 	void Init();
 	void Run();
@@ -67,6 +68,7 @@ protected:
 private:
 	SDL_Color m_backgroundColor = { 0, 0, 0, 255 };
 	SDL_Event m_mainEventCatcher = SDL_Event {};
+	float m_deltaTime = 0.0f;
 };
 
 extern Application* GetApplicationInstance();

@@ -5,7 +5,7 @@
 #include "Components/CircleCollider2D.h"
 #include "Components/Rigidbody2D.h"
 #include "Components/Transform.h"
-#include "Core/HelperFunctions.h"
+#include "Core/ScreenHelperFunctions.h"
 #include "Scene/SceneManager.h"
 
 #ifdef _DEBUG
@@ -25,7 +25,7 @@ void Core::Editor::Update(const float deltaTime)
 
     if (!io.WantCaptureMouse)
     {
-        const glm::vec2 worldMousePos = ScreenToWorld(glm::vec2(io.MousePos.x, io.MousePos.y));
+        const glm::vec2 worldMousePos = ScreenHelperFunctions::ScreenToWorld(glm::vec2(io.MousePos.x, io.MousePos.y));
 
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
         {
@@ -110,7 +110,7 @@ void Core::Editor::Update(const float deltaTime)
 
                 if (auto circleCollider = gameObject->GetComponent<Components::CircleCollider2D>())
                 {
-                    circleCollider->Radius = glm::length(transform->Scale) * 0.5f;
+                    circleCollider->SetRadius(glm::length(transform->Scale) * 0.5f);
                 }
                 ImGui::Separator();
             }

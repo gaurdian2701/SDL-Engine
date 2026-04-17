@@ -1,5 +1,5 @@
 ﻿#include "Core/ECS/Systems/ParticleSystem.h"
-#include "Core/HelperFunctions.h"
+#include "Core/ScreenHelperFunctions.h"
 #include "Components/ParticleEmitter.h"
 #include "Components/Transform.h"
 #include "Core/ECS/ECSManager.h"
@@ -12,8 +12,8 @@ void Core::ECS::Systems::ParticleSystem::RegisterInterestedComponents()
 
 void Core::ECS::Systems::ParticleSystem::BeginSystem()
 {
-	m_maxCartesianLimits = GetMaxCartesianLimits();
-	m_minCartesianLimits = GetMinCartesianLimits();
+	m_maxCartesianLimits = ScreenHelperFunctions::GetMaxCartesianLimits();
+	m_minCartesianLimits = ScreenHelperFunctions::GetMinCartesianLimits();
 }
 
 void Core::ECS::Systems::ParticleSystem::OnComponentAdded(const std::uint32_t entityID)
@@ -83,7 +83,7 @@ void Core::ECS::Systems::ParticleSystem::UpdateSystem(const float deltaTime)
 inline void Core::ECS::Systems::ParticleSystem::RenderParticle(Components::ParticleEmitter *someParticleEmitter,
                                                                Components::Particle &someParticle)
 {
-	glm::vec2 screenCoordinates = WorldToScreen(someParticle.CurrentPosition);
+	glm::vec2 screenCoordinates = ScreenHelperFunctions::WorldToScreen(someParticle.CurrentPosition);
 	someParticleEmitter->RenderRectangle.x = screenCoordinates.x - someParticle.ParticleSize * 0.5f;
 	someParticleEmitter->RenderRectangle.y = screenCoordinates.y - someParticle.ParticleSize * 0.5f;
 	someParticleEmitter->RenderRectangle.w = someParticle.ParticleSize;

@@ -1,7 +1,8 @@
 ﻿#pragma once
 #include "BroadPhase.h"
+#include "Core/ECS/Systems/PhysicsSystem.h"
 
-namespace Core::ECS::Systems::Physics
+namespace Core::Physics
 {
 	class NaiveBroadPhase : public BroadPhase
 	{
@@ -9,6 +10,6 @@ namespace Core::ECS::Systems::Physics
 		NaiveBroadPhase() = default;
 		~NaiveBroadPhase() override = default;
 
-		virtual void GeneratePairs(std::vector<CollisionPair>& collisionPairs) override;
+		virtual void GeneratePairs(std::vector<PhysicsData::CollisionPair>& collisionPairs) override;
 	};
 }

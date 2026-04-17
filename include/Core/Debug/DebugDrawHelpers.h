@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "vec2.hpp"
-#include "Core/HelperFunctions.h"
+#include "Core/ScreenHelperFunctions.h"
 #include "SDL3/SDL_rect.h"
 
 namespace Debug::DebugDrawHelpers
@@ -16,10 +16,10 @@ namespace Debug::DebugDrawHelpers
     {
         static SDL_FPoint* boxDrawPoints = new SDL_FPoint[5];
 
-        glm::vec2 topLeftScreenCoordinates = Core::WorldToScreen(topLeft);
-        glm::vec2 topRightScreenCoordinates = Core::WorldToScreen(topRight);
-        glm::vec2 bottomRightScreenCoordinates = Core::WorldToScreen(bottomRight);
-        glm::vec2 bottomLeftScreenCoordinates = Core::WorldToScreen(bottomLeft);
+        glm::vec2 topLeftScreenCoordinates = Core::ScreenHelperFunctions::WorldToScreen(topLeft);
+        glm::vec2 topRightScreenCoordinates = Core::ScreenHelperFunctions::WorldToScreen(topRight);
+        glm::vec2 bottomRightScreenCoordinates = Core::ScreenHelperFunctions::WorldToScreen(bottomRight);
+        glm::vec2 bottomLeftScreenCoordinates = Core::ScreenHelperFunctions::WorldToScreen(bottomLeft);
 
         boxDrawPoints[0] = SDL_FPoint(topLeftScreenCoordinates.x, topLeftScreenCoordinates.y);
         boxDrawPoints[1] = SDL_FPoint(topRightScreenCoordinates.x, topRightScreenCoordinates.y);
@@ -38,13 +38,13 @@ namespace Debug::DebugDrawHelpers
         float a)
     {
         SDL_FPoint* polygonDrawPoints = new SDL_FPoint[points.size()+1];
-        glm::vec2 screenCoordinates = Core::WorldToScreen(glm::vec2(0.0f));
+        glm::vec2 screenCoordinates = Core::ScreenHelperFunctions::WorldToScreen(glm::vec2(0.0f));
 
         int pointIndex = 0;
 
         for (pointIndex; pointIndex < points.size(); pointIndex++)
         {
-            screenCoordinates = Core::WorldToScreen(points[pointIndex]);
+            screenCoordinates = Core::ScreenHelperFunctions::WorldToScreen(points[pointIndex]);
             polygonDrawPoints[pointIndex] = SDL_FPoint(screenCoordinates.x, screenCoordinates.y);
         }
         polygonDrawPoints[pointIndex] = polygonDrawPoints[0];
@@ -77,7 +77,7 @@ namespace Debug::DebugDrawHelpers
         float b,
         float a)
     {
-        glm::vec2 screenPosition = Core::WorldToScreen(centerWorldPos);
+        glm::vec2 screenPosition = Core::ScreenHelperFunctions::WorldToScreen(centerWorldPos);
         int x = 0, y = radius;
         int d = 3 - 2 * radius;
 

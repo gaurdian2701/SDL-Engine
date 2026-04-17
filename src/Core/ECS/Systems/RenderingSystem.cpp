@@ -5,7 +5,7 @@
 #include "Components/Renderer2D.h"
 #include "Components/Transform.h"
 #include "Components/UITexture.h"
-#include "Core/HelperFunctions.h"
+#include "Core/ScreenHelperFunctions.h"
 
 void Core::ECS::Systems::RenderingSystem::RegisterInterestedComponents()
 {
@@ -19,7 +19,7 @@ void Core::ECS::Systems::RenderingSystem::UpdateSystem(const float deltaTime)
 	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::Renderer2D>(
 		[&](const Components::Transform* transform, Components::Renderer2D* renderer2D)
 		{
-			glm::vec2 screenCoordinates = WorldToScreen(transform->Position);
+			glm::vec2 screenCoordinates = ScreenHelperFunctions::WorldToScreen(transform->Position);
 			renderer2D->RenderRectangle.x = screenCoordinates.x - transform->Scale.x / 2;
 			renderer2D->RenderRectangle.y = screenCoordinates.y - transform->Scale.y / 2;
 			renderer2D->RenderRectangle.w = transform->Scale.x;
@@ -42,7 +42,7 @@ void Core::ECS::Systems::RenderingSystem::UpdateSystem(const float deltaTime)
 	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::UITexture>(
 	[&](const Components::Transform* transform, Components::UITexture* uiTexture)
 	{
-		glm::vec2 screenCoordinates = WorldToScreen(transform->Position);
+		glm::vec2 screenCoordinates = ScreenHelperFunctions::WorldToScreen(transform->Position);
 		uiTexture->RenderRectangle.x = screenCoordinates.x - transform->Scale.x / 2;
 		uiTexture->RenderRectangle.y = screenCoordinates.y - transform->Scale.y / 2;
 		uiTexture->RenderRectangle.w = transform->Scale.x;

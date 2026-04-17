@@ -1,7 +1,9 @@
 ﻿#pragma once
-#include "Core/HelperFunctions.h"
+#include "Core/ScreenHelperFunctions.h"
+#include "glm.hpp"
+#include "Components/AABB.h"
 
-namespace CollisionChecks
+namespace Core::Physics::CollisionHelperFunctions
 {
 	static inline bool AABBVsAABB(const Components::AABB& aabb1, const Components::AABB& aabb2)
 	{
@@ -82,27 +84,39 @@ namespace CollisionChecks
 		const std::vector<glm::vec2>& polygonPointsA,
 		const std::vector<glm::vec2>& polygonPointsB,
 		float& penetrationDepth,
-		glm::vec2& contactNormal)
+		glm::vec2& contactNormal,
+		glm::vec2& referenceEdge,
+		bool& aIsReferenceEdge,
+		std::size_t& referenceEdgeIndex)
 	{
 		float minSeparationDepth = FLT_MAX;
+		float bestSeparationA = std::numeric_limits<float>::min();
+		float bestSeparationB = std::numeric_limits<float>::min();
+		uint32_t bestIndexA = 0;
+		uint32_t bestIndexB = 0;
+		std::size_t numberOfPointsInPolygonA = polygonPointsA.size();
+		std::size_t numberOfPointsInPolygonB = polygonPointsB.size();
+		static float faceSwitchTolerance = 1e-4;
+
 		glm::vec2 resolutionNormal = glm::vec2(0.0f); //Normal used for resolving collisions
 
 		//Separating Axis Theorem for detecting collisions between polygons
-		for (uint32_t pointIndex = 0; pointIndex < polygonPointsA.size(); pointIndex++)
+		//First start for points on polygon A
+		for (uint32_t pointIndex = 0; pointIndex < numberOfPointsInPolygonA; pointIndex++)
 		{
-			//Find normal of edge between first and next point
-			const glm::vec2& firstPoint = polygonPointsA[pointIndex];
-			const glm::vec2& secondPoint = polygonPointsA[(pointIndex+1)%polygonPointsA.size()];
-			const glm::vec2 edge = secondPoint - firstPoint;
+			//Find normal of edge between current and previous point
+			const glm::vec2& currentPoint = polygonPointsA[pointIndex];
+			const glm::vec2& nextPoint = polygonPointsA[(pointIndex + 1)%numberOfPointsInPolygonA];
+			const glm::vec2 edge = nextPoint - currentPoint;
 
-			glm::vec2 separatingAxis = glm::vec2(-edge.y, edge.x);
-			separatingAxis = glm::normalize(separatingAxis);
+			glm::vec2 normalSeparatingAxis = glm::vec2(-edge.y, edge.x);
+			normalSeparatingAxis = glm::normalize(normalSeparatingAxis);
 
 			//Using the normal as the new axis, project all edges of both polygons onto that axis and find their
 			//max and min projections
 			float maxAOnAxis = 0.0f, minAOnAxis = 0.0f, maxBOnAxis = 0.0f, minBOnAxis = 0.0f;
-			ProjectPointsOnAxis(polygonPointsA, separatingAxis, maxAOnAxis, minAOnAxis);
-			ProjectPointsOnAxis(polygonPointsB, separatingAxis, maxBOnAxis, minBOnAxis);
+			ProjectPointsOnAxis(polygonPointsA, normalSeparatingAxis, maxAOnAxis, minAOnAxis);
+			ProjectPointsOnAxis(polygonPointsB, normalSeparatingAxis, maxBOnAxis, minBOnAxis);
 
 			//Using max and min projections, if a gap is found, return false
 			if (minAOnAxis >= maxBOnAxis || maxAOnAxis <= minBOnAxis)
@@ -111,28 +125,32 @@ namespace CollisionChecks
 			}
 
 			//Find the magnitude of separation
-			float axisDepth = std::min(glm::length(maxBOnAxis - minAOnAxis), glm::length(maxAOnAxis - minBOnAxis));
+			float axisDepth = std::min(maxBOnAxis - minAOnAxis, maxAOnAxis - minBOnAxis);
 			if (axisDepth < minSeparationDepth)
 			{
 				minSeparationDepth = axisDepth;
-				resolutionNormal = separatingAxis;
+				bestIndexA = pointIndex;
 			}
 		}
+
+		bestSeparationA = minSeparationDepth;
+		minSeparationDepth = FLT_MAX;
 
 		//Repeat for points on B
-		for (uint32_t pointIndex = 0; pointIndex < polygonPointsB.size(); pointIndex++)
+		for (uint32_t pointIndex = 0; pointIndex < numberOfPointsInPolygonB; pointIndex++)
 		{
-			//Find normal of edge between first and next point
-			const glm::vec2& firstPoint = polygonPointsB[pointIndex];
-			const glm::vec2& secondPoint = polygonPointsB[(pointIndex+1)%polygonPointsB.size()];
-			const glm::vec2 edge = secondPoint - firstPoint;
-			glm::vec2 axisNormal = glm::vec2(-edge.y, edge.x);
+			//Find normal of edge between current and previous point
+			const glm::vec2& currentPoint = polygonPointsB[pointIndex];
+			const glm::vec2& nextPoint = polygonPointsB[(pointIndex + 1)%numberOfPointsInPolygonB];
+			const glm::vec2 edge = nextPoint - currentPoint;
+			glm::vec2 normalSeparatingAxis = glm::vec2(-edge.y, edge.x);
+			normalSeparatingAxis = glm::normalize(normalSeparatingAxis);
 
 			//Using the normal as the new axis, project all edges of both polygons onto that axis and find their
 			//max and min projections
 			float maxAOnAxis = 0.0f, minAOnAxis = 0.0f, maxBOnAxis = 0.0f, minBOnAxis = 0.0f;
-			ProjectPointsOnAxis(polygonPointsA, axisNormal, maxAOnAxis, minAOnAxis);
-			ProjectPointsOnAxis(polygonPointsB, axisNormal, maxBOnAxis, minBOnAxis);
+			ProjectPointsOnAxis(polygonPointsA, normalSeparatingAxis, maxAOnAxis, minAOnAxis);
+			ProjectPointsOnAxis(polygonPointsB, normalSeparatingAxis, maxBOnAxis, minBOnAxis);
 
 			//Using max and min projections, if a gap is found, return false
 			if (minAOnAxis >= maxBOnAxis || maxAOnAxis <= minBOnAxis)
@@ -141,23 +159,46 @@ namespace CollisionChecks
 			}
 
 			//Find the magnitude of separation
-			float axisDepth = std::min(glm::length(maxBOnAxis - minAOnAxis), glm::length(maxAOnAxis - minBOnAxis));
+			float axisDepth = std::min(maxBOnAxis - minAOnAxis, maxAOnAxis - minBOnAxis);
 			if (axisDepth < minSeparationDepth)
 			{
 				minSeparationDepth = axisDepth;
-				resolutionNormal = axisNormal;
+				bestIndexB = pointIndex;
 			}
 		}
 
-		//Since we were computing the depth with un-normalized axisNormal, we divide by the length of the normal
-		//here to get the proper depth as if it was computed with the normalized axis normal
-		minSeparationDepth /= glm::length(resolutionNormal);
+		bestSeparationB = minSeparationDepth;
+
+		//Pick the reference edge for contact point generation - the one with the larger separation along normal
+		//is considered the reference edge because it's the shallowest penetration direction.
+		//Shallower penetrations result in more stable contact points since it:
+		//1. Minimizes numerical errors in contact point calculation
+		//2. Provides consistent incident and reference edge selection per frame.
+
+		if (bestSeparationA > bestSeparationB + faceSwitchTolerance)
+		{
+			minSeparationDepth = bestSeparationA;
+			referenceEdgeIndex = bestIndexA;
+			referenceEdge = polygonPointsA[(bestIndexA + 1) % numberOfPointsInPolygonA] - polygonPointsA[bestIndexA];
+			aIsReferenceEdge = true;
+		}
+		else
+		{
+			minSeparationDepth = bestSeparationB;
+			referenceEdgeIndex = bestIndexB;
+			referenceEdge = polygonPointsB[(bestIndexB + 1) % numberOfPointsInPolygonB] - polygonPointsB[bestIndexB];
+			aIsReferenceEdge = false;
+		}
+
+		resolutionNormal = glm::vec2(-referenceEdge.y, referenceEdge.x);
 
 #ifdef _DEBUG
-		glm::vec2 centerScreenA = Core::WorldToScreen(polygonCenterA);
-		glm::vec2 centerScreenB = Core::WorldToScreen(polygonCenterB);
-		glm::vec2 screenAEnd = Core::WorldToScreen(polygonCenterA + minSeparationDepth * glm::normalize(resolutionNormal));
-		glm::vec2 screenBEnd = Core::WorldToScreen(polygonCenterB - minSeparationDepth * glm::normalize(resolutionNormal));
+		glm::vec2 centerScreenA = Core::ScreenHelperFunctions::WorldToScreen(polygonCenterA);
+		glm::vec2 centerScreenB = Core::ScreenHelperFunctions::WorldToScreen(polygonCenterB);
+		glm::vec2 screenAEnd = Core::ScreenHelperFunctions::WorldToScreen(
+			polygonCenterA + minSeparationDepth * glm::normalize(resolutionNormal));
+		glm::vec2 screenBEnd = Core::ScreenHelperFunctions::WorldToScreen(
+			polygonCenterB - minSeparationDepth * glm::normalize(resolutionNormal));
 
 		SDL_SetRenderDrawColor(Application::GetCoreInstance().GetMainRenderer(), 255, 0, 0, 255);
 		SDL_RenderLine(Application::GetCoreInstance().GetMainRenderer(), centerScreenA.x, centerScreenA.y, screenAEnd.x, screenAEnd.y);
@@ -192,10 +233,10 @@ namespace CollisionChecks
 		//Also uses SAT for polygon vs circle collisions
 		for (uint32_t pointIndex = 0; pointIndex < polygonPoints.size(); pointIndex++)
 		{
-			//Find normal of edge between first and next point
-			const glm::vec2& firstPoint = polygonPoints[pointIndex];
-			const glm::vec2& secondPoint = polygonPoints[(pointIndex+1)%polygonPoints.size()];
-			const glm::vec2 edge = secondPoint - firstPoint;
+			//Find normal of edge between current and next point
+			const glm::vec2& currentPoint = polygonPoints[pointIndex];
+			const glm::vec2& nextPoint = polygonPoints[(pointIndex+1)%polygonPoints.size()];
+			const glm::vec2 edge = nextPoint - currentPoint;
 
 			//The normal of the edge is taken as the separating axis
 			separatingAxis = glm::vec2(-edge.y, edge.x);
@@ -265,10 +306,11 @@ namespace CollisionChecks
 		minSeparationDepth /= glm::length(resolutionNormal);
 
 #ifdef _DEBUG
-		glm::vec2 polygonCenterInScreenCoords = Core::WorldToScreen(polygonCenter);
-		glm::vec2 polygonEndPointInScreenCoords = Core::WorldToScreen(polygonCenter + minSeparationDepth * glm::normalize(resolutionNormal));
-		glm::vec2 circleCenterInScreenCoords = Core::WorldToScreen(circleCenter);
-		glm::vec2 circleEndPointInScreenCoords = Core::WorldToScreen(circleCenter - minSeparationDepth * glm::normalize(resolutionNormal));
+		glm::vec2 polygonCenterInScreenCoords = Core::ScreenHelperFunctions::WorldToScreen(polygonCenter);
+		glm::vec2 polygonEndPointInScreenCoords = Core::ScreenHelperFunctions::WorldToScreen(polygonCenter + minSeparationDepth * glm::normalize(resolutionNormal));
+		glm::vec2 circleCenterInScreenCoords = Core::ScreenHelperFunctions::WorldToScreen(circleCenter);
+		glm::vec2 circleEndPointInScreenCoords = Core::ScreenHelperFunctions::WorldToScreen(
+			circleCenter - minSeparationDepth * glm::normalize(resolutionNormal));
 
 		SDL_SetRenderDrawColor(Application::GetCoreInstance().GetMainRenderer(), 255, 0, 0, 255);
 		SDL_RenderLine(Application::GetCoreInstance().GetMainRenderer(), polygonCenterInScreenCoords.x, polygonCenterInScreenCoords.y, polygonEndPointInScreenCoords.x, polygonEndPointInScreenCoords.y);

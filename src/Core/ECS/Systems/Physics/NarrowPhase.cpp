@@ -1,15 +1,16 @@
-﻿#include "Core/ECS/Systems/Physics/NarrowPhase.h"
+﻿#include "Core/Physics/NarrowPhase.h"
 #include "Core/ECS/ECSManager.h"
 #include "Components/PolygonCollider2D.h"
 #include "Components/CircleCollider2D.h"
 #include "Components/Transform.h"
-#include "Core/ECS/Systems/Physics/CollisionChecks.h"
 #include "Components/Rigidbody2D.h"
-#include "Core/ECS/Systems/Physics/CollisionPair.h"
-#include "Core/ECS/Systems/Physics/CollisionManifold.h"
+#include "Core/Physics/CollisionHelperFunctions.h"
+#include "Core/Physics/ContactManifold.h"
+#include "Core/Physics/CollisionPair.h"
 
-
-void Core::ECS::Systems::Physics::NarrowPhase::GenerateManifolds(const std::vector<CollisionPair>& collisionPairs, std::vector<CollisionManifold>& manifolds)
+void Core::Physics::NarrowPhase::GenerateManifolds(
+	const std::vector<Core::Physics::PhysicsData::CollisionPair>& collisionPairs,
+	std::vector<PhysicsData::ContactManifold>& manifolds)
 {
 	for (auto& pair : collisionPairs)
 	{
@@ -17,17 +18,17 @@ void Core::ECS::Systems::Physics::NarrowPhase::GenerateManifolds(const std::vect
 	}
 }
 
-void Core::ECS::Systems::Physics::NarrowPhase::DoCircleVsCircle(const CollisionPair& pair, std::vector<CollisionManifold>& manifolds)
+void Core::Physics::NarrowPhase::DoCircleVsCircle(const Core::Physics::PhysicsData::CollisionPair& pair, std::vector<PhysicsData::ContactManifold>& manifolds)
 {
-	auto firstCircle = ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(pair.EntityA);
-	auto secondCircle = ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(pair.EntityB);
+	auto firstCircle = Core::ECS::ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(pair.EntityA);
+	auto secondCircle = Core::ECS::ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(pair.EntityB);
 
-	auto firstCircleTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityA);
-	auto secondCircleTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityB);
+	auto firstCircleTransform = Core::ECS::ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityA);
+	auto secondCircleTransform = Core::ECS::ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityB);
 
-	float radiusSum = firstCircle->Radius + secondCircle->Radius;
+	float radiusSum = firstCircle->GetRadius() + secondCircle->GetRadius();
 
-	if (CollisionChecks::CircleVsCircle(firstCircleTransform->Position,
+	if (CollisionHelperFunctions::CircleVsCircle(firstCircleTransform->Position,
 									secondCircleTransform->Position,
 									radiusSum))
 	{
@@ -42,67 +43,76 @@ void Core::ECS::Systems::Physics::NarrowPhase::DoCircleVsCircle(const CollisionP
 			float penetrationDepth = radiusSum - glm::distance(firstCircleTransform->Position, secondCircleTransform->Position);
 
 			manifolds.emplace_back(firstCircleTransform, secondCircleTransform,
-				ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityA),
-				ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityB),
+				Core::ECS::ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityA),
+				Core::ECS::ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityB),
 				std::forward<glm::vec2>(contactNormal),
 				penetrationDepth);
 		}
 	}
 }
 
-void Core::ECS::Systems::Physics::NarrowPhase::DoPolygonVsCircle(const CollisionPair& pair, std::vector<CollisionManifold>& manifolds)
+void Core::Physics::NarrowPhase::DoPolygonVsCircle(const Core::Physics::PhysicsData::CollisionPair& pair, std::vector<PhysicsData::ContactManifold>& manifolds)
 {
 	float penetrationDepth = 0.0f;
 	glm::vec2 contactNormal = glm::vec2(0.0f);
 
-	auto polygon = ECSManager::GetInstance().GetComponent<Components::PolygonCollider2D>(pair.EntityA);
-	auto circle = ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(pair.EntityB);
+	auto polygon = Core::ECS::ECSManager::GetInstance().GetComponent<Components::PolygonCollider2D>(pair.EntityA);
+	auto circle = Core::ECS::ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(pair.EntityB);
 
-	auto polygonTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityA);
-	auto circleTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityB);
+	auto polygonTransform = Core::ECS::ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityA);
+	auto circleTransform = Core::ECS::ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityB);
 
-	if (CollisionChecks::PolygonVsCircle(polygonTransform->Position,
+	if (Core::Physics::CollisionHelperFunctions::PolygonVsCircle(polygonTransform->Position,
 				polygon->GetPoints(), circleTransform->Position,
-				circle->Radius, penetrationDepth, contactNormal))
+				circle->GetRadius(), penetrationDepth, contactNormal))
 	{
 		polygon->IsColliding = true;
 		circle->IsColliding = true;
 
 		manifolds.emplace_back(polygonTransform,
 			circleTransform,
-			ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityA),
-			ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityB),
+			Core::ECS::ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityA),
+			Core::ECS::ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityB),
 			std::forward<glm::vec2>(contactNormal),
 			penetrationDepth);
 	}
 }
 
-void Core::ECS::Systems::Physics::NarrowPhase::DoPolygonVsPolygon(const CollisionPair& pair, std::vector<CollisionManifold>& manifolds)
+void Core::Physics::NarrowPhase::DoPolygonVsPolygon(const Core::Physics::PhysicsData::CollisionPair& pair, std::vector<PhysicsData::ContactManifold>& manifolds)
 {
 	float penetrationDepth = 0.0f;
 	glm::vec2 contactNormal = glm::vec2(0.0f);
+	glm::vec2 referenceEdge = glm::vec2(0.0f);
+	bool aIsReferenceEdge = false;
+	std::size_t referenceEdgeIndex = 0;
 
-	auto firstPolygon = ECSManager::GetInstance().GetComponent<Components::PolygonCollider2D>(pair.EntityA);
-	auto secondPolygon = ECSManager::GetInstance().GetComponent<Components::PolygonCollider2D>(pair.EntityB);
+	auto firstPolygon =
+		Core::ECS::ECSManager::GetInstance().GetComponent<Components::PolygonCollider2D>(pair.EntityA);
+	auto secondPolygon =
+		Core::ECS::ECSManager::GetInstance().GetComponent<Components::PolygonCollider2D>(pair.EntityB);
 
-	auto firstPolygonTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityA);
-	auto secondPolygonTransform = ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityB);
+	auto firstPolygonTransform =
+		Core::ECS::ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityA);
+	auto secondPolygonTransform =
+		Core::ECS::ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityB);
 
-
-	if (CollisionChecks::PolygonVsPolygon(firstPolygon->GetCenter(),
+	if (Core::Physics::CollisionHelperFunctions::PolygonVsPolygon(firstPolygon->GetCenter(),
 				secondPolygon->GetCenter(),
 				firstPolygon->GetPoints(),
 				secondPolygon->GetPoints(),
 				penetrationDepth,
-				contactNormal))
+				contactNormal,
+				referenceEdge,
+				aIsReferenceEdge,
+				referenceEdgeIndex))
 	{
 		firstPolygon->IsColliding = true;
 		secondPolygon->IsColliding = true;
 
 		manifolds.emplace_back(firstPolygonTransform,
 			secondPolygonTransform,
-			ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityA),
-			ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityB),
+			Core::ECS::ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityA),
+			Core::ECS::ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityB),
 			std::forward<glm::vec2>(contactNormal),
 			penetrationDepth);
 	}

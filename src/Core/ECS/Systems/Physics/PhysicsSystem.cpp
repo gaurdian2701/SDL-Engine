@@ -1,10 +1,10 @@
-﻿#include "Core/ECS/Systems/Physics/PhysicsSystem.h"
+﻿#include "../../../../../include/Core/ECS/Systems/PhysicsSystem.h"
 #include "Components/CircleCollider2D.h"
 #include "Components/PolygonCollider2D.h"
 #include "Components/Rigidbody2D.h"
 #include "Components/Transform.h"
 #include "Core/ECS/ECSManager.h"
-#include "Core/ECS/Systems/Physics/NarrowPhase.h"
+#include "../../../../../include/Core/Physics/NarrowPhase.h"
 
 Core::ECS::Systems::PhysicsSystem* Core::ECS::Systems::PhysicsSystem::m_instance = nullptr;
 
@@ -34,25 +34,35 @@ void Core::ECS::Systems::PhysicsSystem::UpdateSystem(const float deltaTime)
 
 	while (accumulator >= m_timeStep)
 	{
-		UpdateRigidbodies(m_timeStep);
 		UpdateColliders();
+		IntegrateVelocities(m_timeStep);
 		m_broadPhase->GeneratePairs(m_collisionPairs);
 		m_narrowPhase.GenerateManifolds(m_collisionPairs, m_collisionManifolds);
 		m_solver.Solve(m_collisionManifolds);
+		IntegratePositions(m_timeStep);
 		m_collisionManifolds.clear();
 		accumulator -= m_timeStep;
 	}
 }
 
-void Core::ECS::Systems::PhysicsSystem::UpdateRigidbodies(const float physicsTimeStep)
+void Core::ECS::Systems::PhysicsSystem::IntegrateVelocities(const float physicsTimeStep)
+{
+	ECSManager::GetInstance().ForEachUsingComponents<Components::Rigidbody2D>(
+	[&](Components::Rigidbody2D *rigidbody)
+	{
+		rigidbody->AddForce(m_gravity * rigidbody->GetMass());
+		rigidbody->LinearVelocity += rigidbody->LinearAcceleration * physicsTimeStep;
+	});
+}
+
+void Core::ECS::Systems::PhysicsSystem::IntegratePositions(const float physicsTimeStep)
 {
 	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::Rigidbody2D>(
-		[&](Components::Transform *transform, Components::Rigidbody2D *rigidbody)
-		{
-			rigidbody->LinearVelocity += rigidbody->Acceleration * physicsTimeStep;
-			// rigidbody->LinearVelocity += m_gravity * physicsTimeStep;
-			transform->Position += rigidbody->LinearVelocity * physicsTimeStep;
-		});
+	[&](Components::Transform *transform, Components::Rigidbody2D *rigidbody)
+	{
+		transform->Position += rigidbody->LinearVelocity * physicsTimeStep;
+		rigidbody->LinearAcceleration = glm::vec2(0.0f);
+	});
 }
 
 void Core::ECS::Systems::PhysicsSystem::UpdateColliders()
@@ -60,7 +70,7 @@ void Core::ECS::Systems::PhysicsSystem::UpdateColliders()
 	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::CircleCollider2D>(
 		[&](const Components::Transform *transform, Components::CircleCollider2D *circleCollider)
 		{
-			circleCollider->UpdatePosition(transform->Position);
+			circleCollider->SetPosition(transform->Position);
 			circleCollider->IsColliding = false;
 		});
 

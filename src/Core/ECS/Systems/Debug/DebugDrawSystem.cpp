@@ -1,9 +1,9 @@
-﻿#include "Core/ECS/Systems/Debug/DebugDrawSystem.h"
+﻿#include "../../../../../include/Core/ECS/Systems/DebugDrawSystem.h"
 #include "Components/PolygonCollider2D.h"
 #include "Components/CircleCollider2D.h"
 #include "Components/Transform.h"
 #include "Core/ECS/ECSManager.h"
-#include "Core/ECS/Systems/Debug/DebugDrawHelpers.h"
+#include "../../../../../include/Core/Debug/DebugDrawHelpers.h"
 
 void Core::ECS::Systems::DebugDrawSystem::RegisterInterestedComponents()
 {
@@ -34,12 +34,12 @@ void Core::ECS::Systems::DebugDrawSystem::UpdateSystem(const float deltaTime)
         {
             if (circleCollider->IsColliding)
             {
-                Debug::DebugDrawHelpers::DrawDebugHollowCircle(transform->Position, circleCollider->Radius,
+                Debug::DebugDrawHelpers::DrawDebugHollowCircle(transform->Position, circleCollider->GetRadius(),
                                                                255, 0, 0, 255);
             }
             else
             {
-                Debug::DebugDrawHelpers::DrawDebugHollowCircle(transform->Position, circleCollider->Radius,
+                Debug::DebugDrawHelpers::DrawDebugHollowCircle(transform->Position, circleCollider->GetRadius(),
                                                                0, 255, 0, 255);
             }
         });

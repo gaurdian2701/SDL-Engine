@@ -38,8 +38,9 @@ add_library(
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/Physics/NarrowPhase.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/Physics/Solver.cpp
         include/Components/AABB.h
-        include/Core/ECS/Systems/Physics/NaiveBroadPhase.h
+        include/Core/Physics/NaiveBroadPhase.h
         src/Core/ECS/Systems/Physics/NaiveBroadPhase.cpp
+        include/Core/Physics/ShapeClippingFunctions.h
 )
 
 EnableASANCompileOptions(${ENGINE_BINARY_NAME})

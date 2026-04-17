@@ -43,6 +43,8 @@ namespace Core
             return m_gameObjectsInScene.size();
         }
 
+        glm::vec2 GetMouseWorldCoords();
+
         void DeleteGameObject(Scene::GameObject* someGameObject);
         inline void UnTrackGameObject(Scene::GameObject* someGameObject);
         void GarbageCollect();

@@ -2,7 +2,7 @@
 #include "vec2.hpp"
 #include "Application/Application.h"
 
-namespace Core
+namespace Core::ScreenHelperFunctions
 {
     static inline glm::vec2 WorldToScreen(const glm::vec2 someCartesianCoordinates)
     {

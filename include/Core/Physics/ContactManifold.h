@@ -7,11 +7,13 @@ namespace Components
 	struct Transform;
 }
 
-namespace Core::ECS::Systems::Physics
+namespace Core::Physics::PhysicsData
 {
-	struct CollisionManifold
+	struct ContactManifold
 	{
-		explicit CollisionManifold(Components::Transform* someTransformA,
+		ContactManifold() = default;
+
+		ContactManifold(Components::Transform* someTransformA,
 			Components::Transform* someTransformB,
 			Components::Rigidbody2D* someRigidbodyA,
 			Components::Rigidbody2D* someRigidbodyB,
@@ -27,7 +29,7 @@ namespace Core::ECS::Systems::Physics
 
 		}
 
-		~CollisionManifold() = default;
+		~ContactManifold() = default;
 
 		Components::Transform* TransformA = nullptr;
 		Components::Transform* TransformB = nullptr;
@@ -36,5 +38,6 @@ namespace Core::ECS::Systems::Physics
 
 		glm::vec2 ContactNormal = glm::vec2(0);
 		float PenetrationDepth = 0.0f;
+		float AccumulatedImpulse = 0.0f;
 	};
 }
