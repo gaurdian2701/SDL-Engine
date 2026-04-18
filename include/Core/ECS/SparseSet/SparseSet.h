@@ -24,11 +24,11 @@ namespace Core::ECS
 
 		void AddComponentToEntity(const std::uint32_t entityID, ComponentTypeUsedBySparseSet&& component)
 		{
-			if (m_sparseEntityArray.size()-1 < entityID)
+			if (m_sparseEntityArray.size() <= entityID)
 			{
 				//Resize sparse array to accomodate new elements, and
 				//reserve space for future allocations
-				m_sparseEntityArray.resize(entityID);
+				m_sparseEntityArray.resize(entityID+1, INVALID_ENTITY_ID);
 				m_sparseEntityArray.reserve(m_maxEntityCount / 2);
 				m_denseEntityArray.reserve(m_maxEntityCount / 2);
 				m_denseComponentArray.reserve(m_maxEntityCount / 2);
@@ -91,9 +91,9 @@ namespace Core::ECS
 			m_denseEntityArray.clear();
 			m_denseComponentArray.clear();
 
-			m_sparseEntityArray.resize(m_maxEntityCount);
-			m_denseEntityArray.resize(m_maxEntityCount);
-			m_denseComponentArray.resize(m_maxEntityCount);
+			m_sparseEntityArray.resize(m_maxEntityCount, INVALID_ENTITY_ID);
+			m_denseEntityArray.resize(1, INVALID_ENTITY_ID);
+			m_denseComponentArray.resize(1);
 		}
 
 	private:

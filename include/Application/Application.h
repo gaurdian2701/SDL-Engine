@@ -1,4 +1,5 @@
 #pragma once
+#include "DebugStatements.h"
 #include "SDL3/SDL_render.h"
 #include "SDL3/SDL_video.h"
 
@@ -48,10 +49,8 @@ private:
 	void CheckForQuitEvent();
 	void UpdateCoreSystems();
 
-#ifdef _DEBUG
-	void StartNewImGUIFrame();
-	void PresentImGuiFrame();
-#endif
+	DoDebugStatement(void StartNewImGUIFrame());
+	DoDebugStatement(void PresentImGuiFrame());
 
 public:
 	static const int SCREEN_WIDTH = 1000;
@@ -60,9 +59,9 @@ public:
 protected:
 	SDL_Window* m_mainWindow = nullptr;
 	SDL_Renderer* m_mainRenderer = nullptr;
-#ifdef _DEBUG
-	Core::Editor* m_editor = nullptr;
-#endif
+
+	DoDebugStatement(Core::Editor* m_editor = nullptr);
+
 	bool m_isRunning = true;
 
 private:

@@ -4,9 +4,11 @@
 #include "Components/CircleCollider2D.h"
 #include "Components/Transform.h"
 #include "Components/Rigidbody2D.h"
-#include "Core/Physics/CollisionHelperFunctions.h"
+#include "Core/Debug/DebugDrawHelpers.h"
+#include "Core/Physics/ShapeOverlapFunctions.h"
 #include "Core/Physics/ContactManifold.h"
 #include "Core/Physics/CollisionPair.h"
+#include "Core/Physics/ShapeClippingFunctions.h"
 
 void Core::Physics::NarrowPhase::GenerateManifolds(
 	const std::vector<Core::Physics::PhysicsData::CollisionPair>& collisionPairs,
@@ -28,7 +30,7 @@ void Core::Physics::NarrowPhase::DoCircleVsCircle(const Core::Physics::PhysicsDa
 
 	float radiusSum = firstCircle->GetRadius() + secondCircle->GetRadius();
 
-	if (CollisionHelperFunctions::CircleVsCircle(firstCircleTransform->Position,
+	if (ShapeOverlapFunctions::CircleVsCircle(firstCircleTransform->Position,
 									secondCircleTransform->Position,
 									radiusSum))
 	{
@@ -62,7 +64,7 @@ void Core::Physics::NarrowPhase::DoPolygonVsCircle(const Core::Physics::PhysicsD
 	auto polygonTransform = Core::ECS::ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityA);
 	auto circleTransform = Core::ECS::ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityB);
 
-	if (Core::Physics::CollisionHelperFunctions::PolygonVsCircle(polygonTransform->Position,
+	if (Core::Physics::ShapeOverlapFunctions::PolygonVsCircle(polygonTransform->Position,
 				polygon->GetPoints(), circleTransform->Position,
 				circle->GetRadius(), penetrationDepth, contactNormal))
 	{
@@ -83,7 +85,7 @@ void Core::Physics::NarrowPhase::DoPolygonVsPolygon(const Core::Physics::Physics
 	float penetrationDepth = 0.0f;
 	glm::vec2 contactNormal = glm::vec2(0.0f);
 	glm::vec2 referenceEdge = glm::vec2(0.0f);
-	bool aIsReferenceEdge = false;
+	bool aHasReferenceEdge = false;
 	std::size_t referenceEdgeIndex = 0;
 
 	auto firstPolygon =
@@ -96,18 +98,37 @@ void Core::Physics::NarrowPhase::DoPolygonVsPolygon(const Core::Physics::Physics
 	auto secondPolygonTransform =
 		Core::ECS::ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityB);
 
-	if (Core::Physics::CollisionHelperFunctions::PolygonVsPolygon(firstPolygon->GetCenter(),
+	if (Core::Physics::ShapeOverlapFunctions::PolygonVsPolygon(firstPolygon->GetCenter(),
 				secondPolygon->GetCenter(),
 				firstPolygon->GetPoints(),
 				secondPolygon->GetPoints(),
 				penetrationDepth,
 				contactNormal,
 				referenceEdge,
-				aIsReferenceEdge,
+				aHasReferenceEdge,
 				referenceEdgeIndex))
 	{
 		firstPolygon->IsColliding = true;
 		secondPolygon->IsColliding = true;
+
+		std::vector<glm::vec2> contactPoints = std::vector<glm::vec2>(2);
+
+		ClipPolygonVsPolygon(*firstPolygon,
+			*secondPolygon,
+			aHasReferenceEdge,
+			referenceEdge,
+			contactNormal,
+			referenceEdgeIndex,
+			contactPoints);
+
+		if (contactPoints.size() > 0)
+		{
+			Debug::DebugDrawHelpers::DrawDebugHollowCircle(contactPoints[0], 10.0f, 255, 240, 0, 255);
+			if (contactPoints.size() > 1)
+			{
+				Debug::DebugDrawHelpers::DrawDebugHollowCircle(contactPoints[1], 10.0f, 255, 240, 0, 255);
+			}
+		}
 
 		manifolds.emplace_back(firstPolygonTransform,
 			secondPolygonTransform,

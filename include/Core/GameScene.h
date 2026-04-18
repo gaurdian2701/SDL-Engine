@@ -2,7 +2,7 @@
 #include "vec2.hpp"
 #include "Application/Application.h"
 #include "Core/ECS/ECSManager.h"
-#include "PrintDebug.h"
+#include "DebugStatements.h"
 #include "CoreSystems/ResourceManager.h"
 
 namespace Scene

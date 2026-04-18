@@ -4,7 +4,7 @@
 
 namespace Core::MathHelpers
 {
-	static inline void RotatePointAroundCenter(
+	static void RotatePointAroundCenter(
 		glm::vec2& point,
 		const glm::vec2& center,
 		const float radians)
@@ -18,5 +18,12 @@ namespace Core::MathHelpers
 		//Rotate the point in the origin's coordinate system, and then translate it back to the original position,
 		//i.e. centered around the actual box's center
 		point = glm::vec2(point.x * cosine - point.y * sine, point.x * sine + point.y * cosine) + center;
+	}
+
+	template<typename T>
+	static int GetSign(T number)
+	{
+		if (number < 0) return -1;
+		return 1;
 	}
 }

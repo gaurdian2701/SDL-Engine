@@ -32,9 +32,9 @@ namespace Core::ECS
 		void BeginSystems();
 
 		void UpdateManager(const float deltaTime);
-#ifdef  _DEBUG
+DoDebugStatement(
 		void DebugUpdateManager(const float deltaTime, bool scenePaused);
-#endif
+);
 		void CleanupManager();
 
 		[[nodiscard]] uint32_t GetMaxEntityCount() const
@@ -140,10 +140,10 @@ namespace Core::ECS
 		const std::tuple<std::vector<std::uint32_t>::iterator, std::vector<std::uint32_t> &> GetView()
 		{
 			//By default, smallest entity array is the entity array of FirstComponentType
-			std::uint32_t smallestEntityArraySize = UINT32_MAX;
 			std::type_index smallestEntityArrayTypeIndex = typeid(FirstComponentType);
 			std::vector<std::uint32_t> *smallestEntityArray = &m_componentPoolMap[smallestEntityArrayTypeIndex]->
 					GetDenseEntityArray();
+			std::uint32_t smallestEntityArraySize = smallestEntityArray->size();
 
 			//If OtherComponentTypes has a smaller entity array, then make that smallest, etc.
 			([&]
@@ -256,12 +256,12 @@ namespace Core::ECS
 		std::uint32_t m_maxEntities = 0;
 
 		std::vector<System *> m_systemsList;
-		std::vector<std::uint32_t> m_entityFreeList;
+		std::vector<std::uint32_t> m_entityFreeList = std::vector<std::uint32_t>();
 		std::vector<void(*)(ECSManager &, const std::uint32_t)> m_componentRemovalHandles;
 
 		std::unordered_map<std::type_index, ISparseSet *> m_componentPoolMap;
 		std::unordered_map<uint32_t, std::bitset<MAX_COMPONENT_TYPES> > m_entityBitSetMap = std::unordered_map<uint32_t,
 			std::bitset<MAX_COMPONENT_TYPES> >();
-		ComponentFactory m_componentFactory;
+		ComponentFactory m_componentFactory = ComponentFactory();
 	};
 }

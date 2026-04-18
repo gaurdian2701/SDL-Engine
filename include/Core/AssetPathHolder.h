@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 
-#include "PrintDebug.h"
+#include "DebugStatements.h"
 
 namespace Core
 {

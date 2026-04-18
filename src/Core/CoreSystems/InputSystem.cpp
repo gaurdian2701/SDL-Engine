@@ -1,6 +1,6 @@
 ﻿#include "Core/CoreSystems/InputSystem.h"
 
-#include "PrintDebug.h"
+#include "DebugStatements.h"
 #include "Application/Application.h"
 #include "SDL3/SDL_events.h"
 

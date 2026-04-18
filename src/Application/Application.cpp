@@ -3,7 +3,7 @@
 #include <chrono>
 #include <iostream>
 #include <SDL3/SDL_init.h>
-#include "PrintDebug.h"
+#include "DebugStatements.h"
 #include "Core/Editor.h"
 #include "Core/CoreSystems/CoreSystemsHolder.h"
 #include "Scene/SceneManager.h"
@@ -49,13 +49,13 @@ Application::Application()
     m_mainRenderer = SDL_CreateRenderer(m_mainWindow, nullptr);
     assert(m_mainWindow != nullptr && "Window Creation Failed!");
 
-#ifdef _DEBUG
+    DoDebugCode(
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     ImGui_ImplSDL3_InitForSDLRenderer(m_mainWindow, m_mainRenderer);
     ImGui_ImplSDLRenderer3_Init(m_mainRenderer);
-#endif
+    );
 }
 
 Application::~Application()
@@ -81,18 +81,16 @@ void Application::Init()
         system->Initialize();
     }
 
-#ifdef _DEBUG
-    m_editor = new Core::Editor();
-#endif
+    DoDebugStatement(m_editor = new Core::Editor());
 }
 
 void Application::InitiateShutdown()
 {
-#ifdef _DEBUG
+DoDebugCode(
     ImGui_ImplSDLRenderer3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
-#endif
+);
 
     SDL_DestroyRenderer(m_mainRenderer);
     SDL_DestroyWindow(m_mainWindow);
@@ -120,26 +118,27 @@ void Application::Run()
         auto currentFrameTime = std::chrono::high_resolution_clock::now();
         m_deltaTime = std::chrono::duration<float>(currentFrameTime - lastFrameTime).count();
 
-#ifdef _DEBUG
+        DoDebugCode(
         StartNewImGUIFrame();
-#endif
+        );
         RefreshBackground();
 
         UpdateCoreSystems();
         GetApplicationInstance()->UpdateApplication(m_deltaTime);
 
-#ifdef _DEBUG
+        DoDebugCode(
         m_editor->Update(m_deltaTime);
         PresentImGuiFrame();
-#endif
+        );
 
         SDL_RenderPresent(m_mainRenderer);
 
-#ifdef _DEBUG
+        DoDebugCode(
         //Stall until next frame update
         while (std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - lastFrameTime).count() < 1 / m_editor->GetDeltaTimeInput())
         {}
-#endif
+        );
+
         lastFrameTime = currentFrameTime;
     }
 
@@ -164,9 +163,9 @@ void Application::CheckForQuitEvent()
             m_isRunning = false;
         }
 
-#ifdef _DEBUG
+DoDebugCode(
         ImGui_ImplSDL3_ProcessEvent(&m_mainEventCatcher);
-#endif
+        );
     }
 }
 

@@ -30,10 +30,7 @@ void Core::ECS::ECSManager::CreateSystems()
 
 	m_systemsList.push_back(new Systems::ParticleSystem());
 	m_systemsList.push_back(new Systems::RenderingSystem());
-#ifdef _DEBUG
-	m_systemsList.push_back(new Systems::DebugDrawSystem());
-#endif
-
+	DoDebugCode(m_systemsList.push_back(new Systems::DebugDrawSystem()););
 }
 
 void Core::ECS::ECSManager::InitializeSystems()
@@ -60,7 +57,7 @@ void Core::ECS::ECSManager::UpdateManager(const float deltaTime)
 	}
 }
 
-#ifdef _DEBUG
+DoDebugStatement(
 void Core::ECS::ECSManager::DebugUpdateManager(const float deltaTime, bool scenePaused)
 {
 	for (auto& system : m_systemsList)
@@ -71,7 +68,7 @@ void Core::ECS::ECSManager::DebugUpdateManager(const float deltaTime, bool scene
 		}
 	}
 }
-#endif
+);
 
 void Core::ECS::ECSManager::CleanupManager()
 {

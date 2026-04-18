@@ -3,7 +3,7 @@
 #include "glm.hpp"
 #include "Components/AABB.h"
 
-namespace Core::Physics::CollisionHelperFunctions
+namespace Core::Physics::ShapeOverlapFunctions
 {
 	static inline bool AABBVsAABB(const Components::AABB& aabb1, const Components::AABB& aabb2)
 	{
@@ -86,7 +86,7 @@ namespace Core::Physics::CollisionHelperFunctions
 		float& penetrationDepth,
 		glm::vec2& contactNormal,
 		glm::vec2& referenceEdge,
-		bool& aIsReferenceEdge,
+		bool& aHasReferenceEdge,
 		std::size_t& referenceEdgeIndex)
 	{
 		float minSeparationDepth = FLT_MAX;
@@ -180,14 +180,14 @@ namespace Core::Physics::CollisionHelperFunctions
 			minSeparationDepth = bestSeparationA;
 			referenceEdgeIndex = bestIndexA;
 			referenceEdge = polygonPointsA[(bestIndexA + 1) % numberOfPointsInPolygonA] - polygonPointsA[bestIndexA];
-			aIsReferenceEdge = true;
+			aHasReferenceEdge = true;
 		}
 		else
 		{
 			minSeparationDepth = bestSeparationB;
 			referenceEdgeIndex = bestIndexB;
 			referenceEdge = polygonPointsB[(bestIndexB + 1) % numberOfPointsInPolygonB] - polygonPointsB[bestIndexB];
-			aIsReferenceEdge = false;
+			aHasReferenceEdge = false;
 		}
 
 		resolutionNormal = glm::vec2(-referenceEdge.y, referenceEdge.x);

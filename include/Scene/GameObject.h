@@ -53,12 +53,7 @@ namespace Scene
         }
 
     public:
-#ifdef _DEBUG
-        std::string m_name = "GameObject";
-#endif
-        //TODO: Not used for now, but will use this in a GameScene step where I have to
-        //set parents according to this pointer
-        GameObject* m_parent = nullptr;
+        DoDebugStatement(std::string m_name = "GameObject");
         bool m_isActive = true;
 
     private:

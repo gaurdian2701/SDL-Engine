@@ -18,9 +18,7 @@ void Core::ECS::Systems::PhysicsSystem::RegisterInterestedComponents()
 	ECSManager::GetInstance().RegisterInterestedComponentsForSystem
 			<Components::Transform, Components::Rigidbody2D>(this);
 
-#ifdef _DEBUG
-	m_shouldRunOnlyWhilePlaying = true;
-#endif
+	DoDebugStatement(m_shouldRunOnlyWhilePlaying = true);
 }
 
 void Core::ECS::Systems::PhysicsSystem::BeginSystem()
