@@ -12,35 +12,81 @@ void Core::ECS::Systems::DebugDrawSystem::RegisterInterestedComponents()
                                                                     Components::CircleCollider2D>(this);
 }
 
+void Core::ECS::Systems::DebugDrawSystem::DrawFromDebugDrawList()
+{
+    for (auto& drawData : m_drawList)
+    {
+        switch (drawData.shapeType)
+        {
+            default:
+            case ShapeType::CIRCLE:
+            {
+                Debug::DebugDrawHelpers::DrawDebugHollowCircle(drawData.shapeData.circle.CenterWorldPos,
+                    drawData.shapeData.circle.radius,
+                    drawData.r,
+                    drawData.g,
+                    drawData.b,
+                    drawData.a);
+                break;
+            }
+            case ShapeType::POLYGON:
+            {
+                Debug::DebugDrawHelpers::DrawDebugPolygon(*drawData.shapeData.polygon.Points,
+                    drawData.r,
+                    drawData.g,
+                    drawData.b,
+                    drawData.a);
+                break;
+            }
+        }
+    }
+    m_drawList.clear();
+}
+
 void Core::ECS::Systems::DebugDrawSystem::UpdateSystem(const float deltaTime)
 {
-    //Draw Box Colliders
+    //Batch draw calls for box colliders
     ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::PolygonCollider2D>(
         [&](const Components::Transform* transform, const Components::PolygonCollider2D* polygon2D)
         {
             if (polygon2D->IsColliding)
             {
-                Debug::DebugDrawHelpers::DrawDebugPolygon(polygon2D->GetPoints(), 255, 0, 0, 255);
+                m_drawList.emplace_back(DebugDrawData(PolygonDrawData(&polygon2D->GetPoints()), 255, 0, 0, 255));
             }
             else
             {
-                Debug::DebugDrawHelpers::DrawDebugPolygon(polygon2D->GetPoints(), 0, 255, 0, 255);
+                m_drawList.emplace_back(DebugDrawData(PolygonDrawData(&polygon2D->GetPoints()), 0, 255, 0, 255));
             }
         });
 
-    //Draw Circle Colliders
+    //batch draw calls for circle colliders
     ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::CircleCollider2D>(
         [&](const Components::Transform* transform, const Components::CircleCollider2D* circleCollider)
         {
             if (circleCollider->IsColliding)
             {
-                Debug::DebugDrawHelpers::DrawDebugHollowCircle(transform->Position, circleCollider->GetRadius(),
-                                                               255, 0, 0, 255);
+                m_drawList.emplace_back(DebugDrawData(CircleDrawData(transform->Position, circleCollider->GetRadius()),
+                    255, 0, 0, 255));
             }
             else
             {
-                Debug::DebugDrawHelpers::DrawDebugHollowCircle(transform->Position, circleCollider->GetRadius(),
-                                                               0, 255, 0, 255);
+                m_drawList.emplace_back(DebugDrawData(CircleDrawData(transform->Position, circleCollider->GetRadius()),
+                    255, 0, 0, 255));
             }
         });
+
+    PrintDebug("Draw list size: %llu\n", m_drawList.size());
 }
+
+void Core::ECS::Systems::DebugDrawSystem::DrawHollowCircle(const glm::vec2 &centerWorldPos, const float radius, float r, float g, float b, float a)
+{
+    m_drawList.emplace_back(DebugDrawData(CircleDrawData(centerWorldPos, radius), r, g, b, a));
+}
+
+void Core::ECS::Systems::DebugDrawSystem::DrawDebugPolygon(std::vector<glm::vec2>& points,
+    float r, float g, float b, float a)
+{
+    m_drawList.emplace_back(DebugDrawData(PolygonDrawData(&points), r, g, b, a));
+}
+
+

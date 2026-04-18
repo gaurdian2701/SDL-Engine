@@ -4,6 +4,11 @@
 
 namespace Core::ECS::Systems
 {
+    class DebugDrawSystem;
+}
+
+namespace Core::ECS::Systems
+{
     class RenderingSystem : public System
     {
     public:
@@ -11,8 +16,11 @@ namespace Core::ECS::Systems
         ~RenderingSystem() override = default;
 
         void RegisterInterestedComponents() override;
-        void BeginSystem() override{}
+        void BeginSystem() override;
         void UpdateSystem(const float deltaTime) override;
         void EndSystem() override;
+
+    private:
+        DebugDrawSystem* m_debugDrawSystem = nullptr;
     };
 }

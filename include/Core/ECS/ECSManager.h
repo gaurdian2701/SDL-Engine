@@ -230,13 +230,13 @@ DoDebugStatement(
 		}
 
 		template<std::derived_from<System> SystemType>
-		SystemType &GetSystem()
+		SystemType* GetSystem()
 		{
 			for (auto &system: m_systemsList)
 			{
-				if (typeid(system) == typeid(SystemType))
+				if (auto systemWanted = dynamic_cast<SystemType*>(system))
 				{
-					return *static_cast<SystemType *>(system);
+					return systemWanted;
 				}
 			}
 

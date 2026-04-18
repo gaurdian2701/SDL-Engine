@@ -4,7 +4,7 @@
 #include "Components/CircleCollider2D.h"
 #include "Components/Transform.h"
 #include "Components/Rigidbody2D.h"
-#include "Core/Debug/DebugDrawHelpers.h"
+#include "Core/ECS/Systems/DebugDrawSystem.h"
 #include "Core/Physics/ShapeOverlapFunctions.h"
 #include "Core/Physics/ContactManifold.h"
 #include "Core/Physics/CollisionPair.h"
@@ -36,6 +36,7 @@ void Core::Physics::NarrowPhase::DoCircleVsCircle(const Core::Physics::PhysicsDa
 	{
 		firstCircle->IsColliding = true;
 		secondCircle->IsColliding = true;
+
 
 		//Resolve Circle Vs Circle
 		glm::vec2 directionVector = secondCircleTransform->Position - firstCircleTransform->Position;
@@ -121,14 +122,18 @@ void Core::Physics::NarrowPhase::DoPolygonVsPolygon(const Core::Physics::Physics
 			referenceEdgeIndex,
 			contactPoints);
 
-		if (contactPoints.size() > 0)
+		DoDebugCode(
+		ECS::Systems::DebugDrawSystem* debugSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::DebugDrawSystem>();
+		if (!contactPoints.empty())
 		{
-			Debug::DebugDrawHelpers::DrawDebugHollowCircle(contactPoints[0], 10.0f, 255, 240, 0, 255);
+			debugSystem->DrawHollowCircle(contactPoints[0], 10.0f, 255, 240, 0, 255);
+
 			if (contactPoints.size() > 1)
 			{
-				Debug::DebugDrawHelpers::DrawDebugHollowCircle(contactPoints[1], 10.0f, 255, 240, 0, 255);
+				debugSystem->DrawHollowCircle(contactPoints[1], 10.0f, 255, 240, 0, 255);
 			}
 		}
+		);
 
 		manifolds.emplace_back(firstPolygonTransform,
 			secondPolygonTransform,

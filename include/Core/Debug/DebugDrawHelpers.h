@@ -5,32 +5,6 @@
 
 namespace Debug::DebugDrawHelpers
 {
-    static inline void DrawDebugBox(const glm::vec2& topLeft,
-    const glm::vec2& topRight,
-    const glm::vec2& bottomRight,
-    const glm::vec2& bottomLeft,
-    float r,
-    float g,
-    float b,
-    float a)
-    {
-        static SDL_FPoint* boxDrawPoints = new SDL_FPoint[5];
-
-        glm::vec2 topLeftScreenCoordinates = Core::ScreenHelperFunctions::WorldToScreen(topLeft);
-        glm::vec2 topRightScreenCoordinates = Core::ScreenHelperFunctions::WorldToScreen(topRight);
-        glm::vec2 bottomRightScreenCoordinates = Core::ScreenHelperFunctions::WorldToScreen(bottomRight);
-        glm::vec2 bottomLeftScreenCoordinates = Core::ScreenHelperFunctions::WorldToScreen(bottomLeft);
-
-        boxDrawPoints[0] = SDL_FPoint(topLeftScreenCoordinates.x, topLeftScreenCoordinates.y);
-        boxDrawPoints[1] = SDL_FPoint(topRightScreenCoordinates.x, topRightScreenCoordinates.y);
-        boxDrawPoints[2] = SDL_FPoint(bottomRightScreenCoordinates.x, bottomRightScreenCoordinates.y);
-        boxDrawPoints[3] = SDL_FPoint(bottomLeftScreenCoordinates.x, bottomLeftScreenCoordinates.y);
-        boxDrawPoints[4] = boxDrawPoints[0];
-
-        SDL_SetRenderDrawColor(Application::GetCoreInstance().GetMainRenderer(), r, g, b, a);
-        SDL_RenderLines(Application::GetCoreInstance().GetMainRenderer(), boxDrawPoints, 5);
-    }
-
     static inline void DrawDebugPolygon(const std::vector<glm::vec2>& points,
         float r,
         float g,

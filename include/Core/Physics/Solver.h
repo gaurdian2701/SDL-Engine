@@ -15,7 +15,7 @@ namespace Core::Physics
 		Solver() = default;
 		~Solver() = default;
 
-		void Solve(std::vector<PhysicsData::ContactManifold>& manifolds);
+		void Solve(std::vector<PhysicsData::ContactManifold>& manifolds, const float physicsTimeStep);
 
 	private:
 		const std::uint8_t m_solverIterations = 4;

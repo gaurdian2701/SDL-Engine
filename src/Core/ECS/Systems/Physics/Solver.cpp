@@ -3,7 +3,7 @@
 #include "Components/Transform.h"
 #include "Core/Physics/NaiveBroadPhase.h"
 
-void Core::Physics::Solver::Solve(std::vector<PhysicsData::ContactManifold> &manifolds)
+void Core::Physics::Solver::Solve(std::vector<PhysicsData::ContactManifold> &manifolds, const float physicsTimeStep)
 {
 	for (std::uint8_t i = 0; i < m_solverIterations; i++)
 	{
@@ -26,7 +26,7 @@ void Core::Physics::Solver::Solve(std::vector<PhysicsData::ContactManifold> &man
 				//NOTE: In case 2, two rigidbodies moving in the same direction will fail to collide
 				//with impulse if one rigidbody somehow manages to catch up with the other. They will simply clip
 				//into one another since relativeVelocityAlongNormalScalar would be 0.
-				if (relativeVelocityAlongNormalScalar > 0.0f)
+				if (relativeVelocityAlongNormalScalar > 0.0f && manifold.PenetrationDepth < 0.001f)
 				{
 					continue;
 				}
@@ -36,6 +36,7 @@ void Core::Physics::Solver::Solve(std::vector<PhysicsData::ContactManifold> &man
 				float inverseMassA = manifold.RigidbodyA->GetInverseMass();
 				float inverseMassB = manifold.RigidbodyB->GetInverseMass();
 
+				float bias = 0.2f * manifold.PenetrationDepth / physicsTimeStep;
 				float incrementedImpulse = -(1 + restitutionConstant) * relativeVelocityAlongNormalScalar;
 				incrementedImpulse /= inverseMassA + inverseMassB;
 

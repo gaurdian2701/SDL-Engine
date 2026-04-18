@@ -113,17 +113,16 @@ void Application::Run()
 
     while (m_isRunning)
     {
-        CheckForQuitEvent();
-
         auto currentFrameTime = std::chrono::high_resolution_clock::now();
         m_deltaTime = std::chrono::duration<float>(currentFrameTime - lastFrameTime).count();
+
+        UpdateCoreSystems();
 
         DoDebugCode(
         StartNewImGUIFrame();
         );
         RefreshBackground();
 
-        UpdateCoreSystems();
         GetApplicationInstance()->UpdateApplication(m_deltaTime);
 
         DoDebugCode(
@@ -151,21 +150,6 @@ void Application::UpdateCoreSystems()
     for (auto& system : Core::GetCoreSystems())
     {
         system->Update();
-    }
-}
-
-void Application::CheckForQuitEvent()
-{
-    while (SDL_PollEvent(&m_mainEventCatcher))
-    {
-        if (m_mainEventCatcher.type == SDL_EVENT_QUIT)
-        {
-            m_isRunning = false;
-        }
-
-DoDebugCode(
-        ImGui_ImplSDL3_ProcessEvent(&m_mainEventCatcher);
-        );
     }
 }
 

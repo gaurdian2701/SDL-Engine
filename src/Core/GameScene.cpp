@@ -87,7 +87,7 @@ void Core::GameScene::Start()
 glm::vec2 Core::GameScene::GetMouseWorldCoords()
 {
 	const glm::vec2& mouseWorldCoords = ScreenHelperFunctions::ScreenToWorld(Input::InputSystem::GetInstance().GetMouseScreenCoords());
-	return ScreenHelperFunctions::ScreenToWorld(mouseWorldCoords);
+	return mouseWorldCoords;
 }
 
 void Core::GameScene::Update(const float deltaTime)

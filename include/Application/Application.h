@@ -25,6 +25,7 @@ public:
 	virtual void BeginApplication() = 0;
 	virtual void UpdateApplication(const float deltaTime) = 0;
 	virtual void EndApplication() = 0;
+	void StopRunning() { m_isRunning = false; }
 
 	static Application& GetCoreInstance();
 	static Scene::SceneManager& GetSceneManager();
@@ -46,7 +47,6 @@ public:
 private:
 	void InitiateShutdown();
 	void RefreshBackground();
-	void CheckForQuitEvent();
 	void UpdateCoreSystems();
 
 	DoDebugStatement(void StartNewImGUIFrame());

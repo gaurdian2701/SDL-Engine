@@ -34,8 +34,8 @@ namespace Core::Physics::ShapeOverlapFunctions
 		float& maxProjectionValueOnAxis,
 		float& minProjectionValueOnAxis)
 	{
-		float max = FLT_MIN;
-		float min = FLT_MAX;
+		float max = std::numeric_limits<float>::lowest();
+		float min = std::numeric_limits<float>::max();
 
 		for (uint32_t pointIndex = 0; pointIndex < points.size(); pointIndex++)
 		{
@@ -89,16 +89,14 @@ namespace Core::Physics::ShapeOverlapFunctions
 		bool& aHasReferenceEdge,
 		std::size_t& referenceEdgeIndex)
 	{
-		float minSeparationDepth = FLT_MAX;
-		float bestSeparationA = std::numeric_limits<float>::min();
-		float bestSeparationB = std::numeric_limits<float>::min();
+		float minSeparationDepth = std::numeric_limits<float>::max();
+		float bestSeparationA = std::numeric_limits<float>::lowest();
+		float bestSeparationB = std::numeric_limits<float>::lowest();
 		uint32_t bestIndexA = 0;
 		uint32_t bestIndexB = 0;
 		std::size_t numberOfPointsInPolygonA = polygonPointsA.size();
 		std::size_t numberOfPointsInPolygonB = polygonPointsB.size();
 		static float faceSwitchTolerance = 1e-4;
-
-		glm::vec2 resolutionNormal = glm::vec2(0.0f); //Normal used for resolving collisions
 
 		//Separating Axis Theorem for detecting collisions between polygons
 		//First start for points on polygon A
@@ -134,7 +132,7 @@ namespace Core::Physics::ShapeOverlapFunctions
 		}
 
 		bestSeparationA = minSeparationDepth;
-		minSeparationDepth = FLT_MAX;
+		minSeparationDepth = std::numeric_limits<float>::max();
 
 		//Repeat for points on B
 		for (uint32_t pointIndex = 0; pointIndex < numberOfPointsInPolygonB; pointIndex++)
@@ -153,7 +151,7 @@ namespace Core::Physics::ShapeOverlapFunctions
 			ProjectPointsOnAxis(polygonPointsB, normalSeparatingAxis, maxBOnAxis, minBOnAxis);
 
 			//Using max and min projections, if a gap is found, return false
-			if (minAOnAxis >= maxBOnAxis || maxAOnAxis <= minBOnAxis)
+			if (minAOnAxis > maxBOnAxis || maxAOnAxis < minBOnAxis)
 			{
 				return false;
 			}
@@ -189,24 +187,22 @@ namespace Core::Physics::ShapeOverlapFunctions
 			referenceEdge = polygonPointsB[(bestIndexB + 1) % numberOfPointsInPolygonB] - polygonPointsB[bestIndexB];
 			aHasReferenceEdge = false;
 		}
+		contactNormal = glm::normalize(glm::vec2(-referenceEdge.y, referenceEdge.x));
 
-		resolutionNormal = glm::vec2(-referenceEdge.y, referenceEdge.x);
-
-#ifdef _DEBUG
+DoDebugCode(
 		glm::vec2 centerScreenA = Core::ScreenHelperFunctions::WorldToScreen(polygonCenterA);
 		glm::vec2 centerScreenB = Core::ScreenHelperFunctions::WorldToScreen(polygonCenterB);
 		glm::vec2 screenAEnd = Core::ScreenHelperFunctions::WorldToScreen(
-			polygonCenterA + minSeparationDepth * glm::normalize(resolutionNormal));
+			polygonCenterA + minSeparationDepth * glm::normalize(contactNormal));
 		glm::vec2 screenBEnd = Core::ScreenHelperFunctions::WorldToScreen(
-			polygonCenterB - minSeparationDepth * glm::normalize(resolutionNormal));
+			polygonCenterB - minSeparationDepth * glm::normalize(contactNormal));
 
 		SDL_SetRenderDrawColor(Application::GetCoreInstance().GetMainRenderer(), 255, 0, 0, 255);
 		SDL_RenderLine(Application::GetCoreInstance().GetMainRenderer(), centerScreenA.x, centerScreenA.y, screenAEnd.x, screenAEnd.y);
 		SDL_RenderLine(Application::GetCoreInstance().GetMainRenderer(), centerScreenB.x, centerScreenB.y, screenBEnd.x, screenBEnd.y);
-#endif
+);
 
 		penetrationDepth = minSeparationDepth;
-		contactNormal = glm::normalize(resolutionNormal);
 
 		glm::vec2 directionVector = polygonCenterB - polygonCenterA;
 		if (glm::dot(contactNormal, directionVector) < 0.0f)
@@ -223,12 +219,11 @@ namespace Core::Physics::ShapeOverlapFunctions
 		float& penetrationDepth,
 		glm::vec2& contactNormal)
 	{
-		float minSeparationDepth = FLT_MAX;
+		float minSeparationDepth = std::numeric_limits<float>::max();
 		float axisDepth = 0.0f;
 		float maxPolygonPointOnAxis = 0.0f, minPolygonPointOnAxis = 0.0f, maxCirclePointOnAxis = 0.0f, minCirclePointOnAxis = 0.0f;
 
 		glm::vec2 separatingAxis = glm::vec2(0.0f);
-		glm::vec2 resolutionNormal = glm::vec2(0.0f); //Normal used for resolving collisions
 
 		//Also uses SAT for polygon vs circle collisions
 		for (uint32_t pointIndex = 0; pointIndex < polygonPoints.size(); pointIndex++)
@@ -248,7 +243,7 @@ namespace Core::Physics::ShapeOverlapFunctions
 			ProjectCircleOnAxis(circleCenter, circleRadius, separatingAxis, maxCirclePointOnAxis, minCirclePointOnAxis);
 
 			//Using max and min projections, if a gap is found, return false
-			if (minPolygonPointOnAxis >= maxCirclePointOnAxis || maxPolygonPointOnAxis <= minCirclePointOnAxis)
+			if (minPolygonPointOnAxis > maxCirclePointOnAxis || maxPolygonPointOnAxis < minCirclePointOnAxis)
 			{
 				return false;
 			}
@@ -259,11 +254,11 @@ namespace Core::Physics::ShapeOverlapFunctions
 			if (axisDepth < minSeparationDepth)
 			{
 				minSeparationDepth = axisDepth;
-				resolutionNormal = separatingAxis;
+				contactNormal = separatingAxis;
 			}
 		}
 
-		float minDistance = FLT_MAX;
+		float minDistance = std::numeric_limits<float>::max();
 		uint32_t closestPointIndex = 0;
 
 		//Now to check for collision from the circle's end, first find the point on the polygon that is closest to the circle.
@@ -288,7 +283,7 @@ namespace Core::Physics::ShapeOverlapFunctions
 		ProjectCircleOnAxis(circleCenter, circleRadius, separatingAxis, maxCirclePointOnAxis, minCirclePointOnAxis);
 
 		//Using max and min projections, if a gap is found, return false
-		if (minPolygonPointOnAxis >= maxCirclePointOnAxis || maxPolygonPointOnAxis <= minCirclePointOnAxis)
+		if (minPolygonPointOnAxis > maxCirclePointOnAxis || maxPolygonPointOnAxis < minCirclePointOnAxis)
 		{
 			return false;
 		}
@@ -298,27 +293,27 @@ namespace Core::Physics::ShapeOverlapFunctions
 		if (axisDepth < minSeparationDepth)
 		{
 			minSeparationDepth = axisDepth;
-			resolutionNormal = separatingAxis;
+			contactNormal = separatingAxis;
 		}
 
 		//Since we were computing the depth with un-normalized axisNormal, we divide by the length of the normal
 		//here to get the proper depth as if it was computed with the normalized axis normal
-		minSeparationDepth /= glm::length(resolutionNormal);
+		minSeparationDepth /= glm::length(contactNormal);
 
-#ifdef _DEBUG
+DoDebugCode(
 		glm::vec2 polygonCenterInScreenCoords = Core::ScreenHelperFunctions::WorldToScreen(polygonCenter);
-		glm::vec2 polygonEndPointInScreenCoords = Core::ScreenHelperFunctions::WorldToScreen(polygonCenter + minSeparationDepth * glm::normalize(resolutionNormal));
+		glm::vec2 polygonEndPointInScreenCoords = Core::ScreenHelperFunctions::WorldToScreen(
+			polygonCenter + minSeparationDepth * glm::normalize(contactNormal));
 		glm::vec2 circleCenterInScreenCoords = Core::ScreenHelperFunctions::WorldToScreen(circleCenter);
 		glm::vec2 circleEndPointInScreenCoords = Core::ScreenHelperFunctions::WorldToScreen(
-			circleCenter - minSeparationDepth * glm::normalize(resolutionNormal));
+			circleCenter - minSeparationDepth * glm::normalize(contactNormal));
 
 		SDL_SetRenderDrawColor(Application::GetCoreInstance().GetMainRenderer(), 255, 0, 0, 255);
 		SDL_RenderLine(Application::GetCoreInstance().GetMainRenderer(), polygonCenterInScreenCoords.x, polygonCenterInScreenCoords.y, polygonEndPointInScreenCoords.x, polygonEndPointInScreenCoords.y);
 		SDL_RenderLine(Application::GetCoreInstance().GetMainRenderer(), circleCenterInScreenCoords.x, circleCenterInScreenCoords.y, circleEndPointInScreenCoords.x, circleEndPointInScreenCoords.y);
-#endif
+);
 
 		penetrationDepth = minSeparationDepth;
-		contactNormal = glm::normalize(resolutionNormal);
 
 		glm::vec2 directionVector = circleCenter - polygonCenter;
 		if (glm::dot(contactNormal, directionVector) < 0.0f)

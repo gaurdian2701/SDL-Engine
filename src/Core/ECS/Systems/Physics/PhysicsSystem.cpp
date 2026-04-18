@@ -32,12 +32,13 @@ void Core::ECS::Systems::PhysicsSystem::UpdateSystem(const float deltaTime)
 
 	while (accumulator >= m_timeStep)
 	{
-		UpdateColliders();
 		IntegrateVelocities(m_timeStep);
+		IntegratePositions(m_timeStep);
+		UpdateColliders();
+
 		m_broadPhase->GeneratePairs(m_collisionPairs);
 		m_narrowPhase.GenerateManifolds(m_collisionPairs, m_collisionManifolds);
-		m_solver.Solve(m_collisionManifolds);
-		IntegratePositions(m_timeStep);
+		m_solver.Solve(m_collisionManifolds, m_timeStep);
 		m_collisionManifolds.clear();
 		accumulator -= m_timeStep;
 	}

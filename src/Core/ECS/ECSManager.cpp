@@ -29,8 +29,8 @@ void Core::ECS::ECSManager::CreateSystems()
 	Systems::PhysicsSystem::m_instance = static_cast<Systems::PhysicsSystem*>(m_systemsList.back());
 
 	m_systemsList.push_back(new Systems::ParticleSystem());
-	m_systemsList.push_back(new Systems::RenderingSystem());
 	DoDebugCode(m_systemsList.push_back(new Systems::DebugDrawSystem()););
+	m_systemsList.push_back(new Systems::RenderingSystem());
 }
 
 void Core::ECS::ECSManager::InitializeSystems()

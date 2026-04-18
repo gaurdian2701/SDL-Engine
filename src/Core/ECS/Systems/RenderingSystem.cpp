@@ -6,11 +6,17 @@
 #include "Components/Transform.h"
 #include "Components/UITexture.h"
 #include "Core/ScreenHelperFunctions.h"
+#include "Core/ECS/Systems/DebugDrawSystem.h"
 
 void Core::ECS::Systems::RenderingSystem::RegisterInterestedComponents()
 {
 	ECSManager::GetInstance().RegisterInterestedComponentsForSystem<Components::Transform,
 		Components::Renderer2D, Components::UITexture>(this);
+}
+
+void Core::ECS::Systems::RenderingSystem::BeginSystem()
+{
+	m_debugDrawSystem = ECSManager::GetInstance().GetSystem<DebugDrawSystem>();
 }
 
 void Core::ECS::Systems::RenderingSystem::UpdateSystem(const float deltaTime)
@@ -52,6 +58,9 @@ void Core::ECS::Systems::RenderingSystem::UpdateSystem(const float deltaTime)
 								 uiTexture->RenderTexture, nullptr, &uiTexture->RenderRectangle,
 								 -glm::degrees(transform->Rotation), nullptr, SDL_FLIP_NONE);
 	});
+
+	//Render Debugs
+	DoDebugStatement(m_debugDrawSystem->DrawFromDebugDrawList());
 }
 
 void Core::ECS::Systems::RenderingSystem::EndSystem()
