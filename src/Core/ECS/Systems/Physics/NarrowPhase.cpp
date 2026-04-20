@@ -8,7 +8,7 @@
 #include "Core/Physics/ShapeOverlapFunctions.h"
 #include "Core/Physics/ContactManifold.h"
 #include "Core/Physics/CollisionPair.h"
-#include "Core/Physics/ShapeClippingFunctions.h"
+#include "Core/Physics/ContactPointFunctions.h"
 
 void Core::Physics::NarrowPhase::GenerateManifolds(
 	const std::vector<Core::Physics::PhysicsData::CollisionPair>& collisionPairs,
@@ -22,21 +22,29 @@ void Core::Physics::NarrowPhase::GenerateManifolds(
 
 void Core::Physics::NarrowPhase::DoCircleVsCircle(const Core::Physics::PhysicsData::CollisionPair& pair, std::vector<PhysicsData::ContactManifold>& manifolds)
 {
-	auto firstCircle = Core::ECS::ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(pair.EntityA);
-	auto secondCircle = Core::ECS::ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(pair.EntityB);
+	auto circleA = Core::ECS::ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(pair.EntityA);
+	auto circleB = Core::ECS::ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(pair.EntityB);
 
 	auto firstCircleTransform = Core::ECS::ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityA);
 	auto secondCircleTransform = Core::ECS::ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityB);
 
-	float radiusSum = firstCircle->GetRadius() + secondCircle->GetRadius();
+	float radiusSum = circleA->GetRadius() + circleB->GetRadius();
 
 	if (ShapeOverlapFunctions::CircleVsCircle(firstCircleTransform->Position,
 									secondCircleTransform->Position,
 									radiusSum))
 	{
-		firstCircle->IsColliding = true;
-		secondCircle->IsColliding = true;
+		circleA->IsColliding = true;
+		circleB->IsColliding = true;
 
+		glm::vec2 contactPoint = glm::vec2(0.0f);
+
+		FindCircleVsCircleContactPoint(*circleA, *circleB, contactPoint);
+
+		DoDebugCode(
+			ECS::Systems::DebugDrawSystem* debugSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::DebugDrawSystem>();
+			debugSystem->DrawHollowCircle(contactPoint, 10.0f, 255, 240, 0, 255);
+			);
 
 		//Resolve Circle Vs Circle
 		glm::vec2 directionVector = secondCircleTransform->Position - firstCircleTransform->Position;
@@ -65,12 +73,30 @@ void Core::Physics::NarrowPhase::DoPolygonVsCircle(const Core::Physics::PhysicsD
 	auto polygonTransform = Core::ECS::ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityA);
 	auto circleTransform = Core::ECS::ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityB);
 
+	std::uint32_t closestPolygonVertexIndex = 0;
+
 	if (Core::Physics::ShapeOverlapFunctions::PolygonVsCircle(polygonTransform->Position,
-				polygon->GetPoints(), circleTransform->Position,
-				circle->GetRadius(), penetrationDepth, contactNormal))
+				polygon->GetPoints(),
+				circleTransform->Position,
+				circle->GetRadius(),
+				penetrationDepth,
+				contactNormal,
+				closestPolygonVertexIndex))
 	{
 		polygon->IsColliding = true;
 		circle->IsColliding = true;
+
+		glm::vec2 contactPoint = glm::vec2(0.0f);
+
+		FindPolygonVsCircleContactPoint(*polygon,
+			*circle,
+			contactPoint,
+			closestPolygonVertexIndex);
+
+		DoDebugCode(
+		ECS::Systems::DebugDrawSystem* debugSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::DebugDrawSystem>();
+		debugSystem->DrawHollowCircle(contactPoint, 10.0f, 255, 240, 0, 255);
+		);
 
 		manifolds.emplace_back(polygonTransform,
 			circleTransform,
@@ -112,9 +138,10 @@ void Core::Physics::NarrowPhase::DoPolygonVsPolygon(const Core::Physics::Physics
 		firstPolygon->IsColliding = true;
 		secondPolygon->IsColliding = true;
 
-		std::vector<glm::vec2> contactPoints = std::vector<glm::vec2>(2);
+		static std::vector<glm::vec2> contactPoints = std::vector<glm::vec2>(2);
+		contactPoints.clear();
 
-		ClipPolygonVsPolygon(*firstPolygon,
+		FindPolygonVsPolygonContactPoints(*firstPolygon,
 			*secondPolygon,
 			aHasReferenceEdge,
 			referenceEdge,

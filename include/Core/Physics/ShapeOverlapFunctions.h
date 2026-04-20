@@ -217,24 +217,27 @@ DoDebugCode(
 		const glm::vec2& circleCenter,
 		float circleRadius,
 		float& penetrationDepth,
-		glm::vec2& contactNormal)
+		glm::vec2& contactNormal,
+		std::uint32_t& closestPolygonVertexIndex)
 	{
 		float minSeparationDepth = std::numeric_limits<float>::max();
 		float axisDepth = 0.0f;
 		float maxPolygonPointOnAxis = 0.0f, minPolygonPointOnAxis = 0.0f, maxCirclePointOnAxis = 0.0f, minCirclePointOnAxis = 0.0f;
+		std::uint32_t pointIndex = 0;
+		const std::size_t numberOfPointsInPolygon = polygonPoints.size();
 
 		glm::vec2 separatingAxis = glm::vec2(0.0f);
 
 		//Also uses SAT for polygon vs circle collisions
-		for (uint32_t pointIndex = 0; pointIndex < polygonPoints.size(); pointIndex++)
+		for (; pointIndex < numberOfPointsInPolygon; pointIndex++)
 		{
 			//Find normal of edge between current and next point
 			const glm::vec2& currentPoint = polygonPoints[pointIndex];
-			const glm::vec2& nextPoint = polygonPoints[(pointIndex+1)%polygonPoints.size()];
-			const glm::vec2 edge = nextPoint - currentPoint;
+			const glm::vec2& nextPoint = polygonPoints[(pointIndex+1)%numberOfPointsInPolygon];
+			const glm::vec2 currentEdge = nextPoint - currentPoint;
 
 			//The normal of the edge is taken as the separating axis
-			separatingAxis = glm::vec2(-edge.y, edge.x);
+			separatingAxis = glm::vec2(-currentEdge.y, currentEdge.x);
 			separatingAxis = glm::normalize(separatingAxis);
 
 			//Using the normal as the new axis, project all edges of both polygons onto that axis and find their
@@ -259,23 +262,22 @@ DoDebugCode(
 		}
 
 		float minDistance = std::numeric_limits<float>::max();
-		uint32_t closestPointIndex = 0;
 
 		//Now to check for collision from the circle's end, first find the point on the polygon that is closest to the circle.
-		for (uint32_t pointIndex = 0; pointIndex < polygonPoints.size(); pointIndex++)
+		for (pointIndex = 0; pointIndex < numberOfPointsInPolygon; pointIndex++)
 		{
 			const glm::vec2& point = polygonPoints[pointIndex];
 			float pointDistance = glm::distance(point, circleCenter);
 			if (pointDistance < minDistance)
 			{
 				minDistance = pointDistance;
-				closestPointIndex = pointIndex;
+				closestPolygonVertexIndex = pointIndex;
 			}
 			++pointIndex;
 		}
 
 		//Then, the vector from the center to the closest point becomes the separating axis
-		separatingAxis = circleCenter - polygonPoints[closestPointIndex];
+		separatingAxis = circleCenter - polygonPoints[closestPolygonVertexIndex];
 		separatingAxis = glm::normalize(separatingAxis);
 
 		//Project again on new axis
@@ -309,8 +311,10 @@ DoDebugCode(
 			circleCenter - minSeparationDepth * glm::normalize(contactNormal));
 
 		SDL_SetRenderDrawColor(Application::GetCoreInstance().GetMainRenderer(), 255, 0, 0, 255);
-		SDL_RenderLine(Application::GetCoreInstance().GetMainRenderer(), polygonCenterInScreenCoords.x, polygonCenterInScreenCoords.y, polygonEndPointInScreenCoords.x, polygonEndPointInScreenCoords.y);
-		SDL_RenderLine(Application::GetCoreInstance().GetMainRenderer(), circleCenterInScreenCoords.x, circleCenterInScreenCoords.y, circleEndPointInScreenCoords.x, circleEndPointInScreenCoords.y);
+		SDL_RenderLine(Application::GetCoreInstance().GetMainRenderer(), polygonCenterInScreenCoords.x,
+			polygonCenterInScreenCoords.y, polygonEndPointInScreenCoords.x, polygonEndPointInScreenCoords.y);
+		SDL_RenderLine(Application::GetCoreInstance().GetMainRenderer(), circleCenterInScreenCoords.x,
+			circleCenterInScreenCoords.y, circleEndPointInScreenCoords.x, circleEndPointInScreenCoords.y);
 );
 
 		penetrationDepth = minSeparationDepth;

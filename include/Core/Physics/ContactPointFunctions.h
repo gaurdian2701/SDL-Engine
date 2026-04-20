@@ -4,7 +4,7 @@
 
 namespace Core::Physics
 {
-    static std::uint8_t ClipLineSegmentToLine(const glm::vec2& p1,
+    static std::uint8_t ClipLineSegmentToPoint(const glm::vec2& p1,
         const glm::vec2& p2,
         const glm::vec2& normal,
         const glm::vec2& offset,
@@ -38,7 +38,7 @@ namespace Core::Physics
     }
 
     //Uses Sutherland-Hodgeman clipping
-    static void ClipPolygonVsPolygon(const Components::PolygonCollider2D& polygonA,
+    static void FindPolygonVsPolygonContactPoints(const Components::PolygonCollider2D& polygonA,
         const Components::PolygonCollider2D& polygonB,
         const bool aHasReferenceEdge,
         const glm::vec2& referenceEdge,
@@ -100,7 +100,7 @@ namespace Core::Physics
         }
 
         //Start with reference edge point A, cancel early if we do not find any contact points
-        if (!ClipLineSegmentToLine(incidentEdgePointA,
+        if (!ClipLineSegmentToPoint(incidentEdgePointA,
             incidentEdgePointB,
             -referenceEdgeTangent,
             referenceEdgePointA,
@@ -110,10 +110,58 @@ namespace Core::Physics
         }
 
         //Then with reference edge point B
-        ClipLineSegmentToLine(contactPoints[0],
+        ClipLineSegmentToPoint(contactPoints[0],
             contactPoints[1],
             referenceEdgeTangent,
             referenceEdgePointB,
             contactPoints);
+    }
+
+
+
+    static void FindCircleVsCircleContactPoint(const Components::CircleCollider2D& circleA,
+        const Components::CircleCollider2D& circleB,
+        glm::vec2& contactPoint)
+    {
+        glm::vec2 directionVector = glm::normalize(circleB.GetCenter() - circleA.GetCenter());
+        contactPoint = circleA.GetCenter() + directionVector * circleA.GetRadius();
+    }
+
+    static void FindPolygonVsCircleContactPoint(const Components::PolygonCollider2D& polygon,
+        const Components::CircleCollider2D& circle,
+        glm::vec2& contactPoint,
+        std::uint32_t closestVertexIndex)
+    {
+        auto& polygonPoints = polygon.GetPoints();
+        std::size_t numberOfPointsInPolygon = polygon.GetPoints().size();
+        const glm::vec2& circleCenter = circle.GetCenter();
+        float circleRadius = circle.GetRadius();
+
+        //Compute the closest edge to circle -
+        //We would compare the two closest edges from the closest vertex B, i.e. edges AB and BC
+        const glm::vec2& closestEdgeVertexA = polygonPoints[(closestVertexIndex - 1) % numberOfPointsInPolygon];
+        const glm::vec2& closestEdgeVertexB = polygonPoints[closestVertexIndex];
+        const glm::vec2& closestEdgeVertexC = polygonPoints[(closestVertexIndex+1) % numberOfPointsInPolygon];
+
+        glm::vec2 closestPointOnAB = glm::vec2(0.0f), closestPointOnBC = glm::vec2(0.0f);
+
+        float distanceFromEdgeAB = MathHelpers::PointLineSegmentDistance(closestEdgeVertexA,
+            closestEdgeVertexB,
+            circleCenter,
+            closestPointOnAB);
+
+        float distanceFromEdgeBC = MathHelpers::PointLineSegmentDistance(closestEdgeVertexB,
+            closestEdgeVertexC,
+            circleCenter,
+            closestPointOnBC);
+
+        if (distanceFromEdgeAB < distanceFromEdgeBC)
+        {
+            contactPoint = closestPointOnAB;
+        }
+        else
+        {
+            contactPoint = closestPointOnBC;
+        }
     }
 }

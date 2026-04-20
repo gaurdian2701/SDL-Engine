@@ -1,6 +1,9 @@
 ﻿#pragma once
 #include <cmath>
 #include "vec2.hpp"
+#include "ext/quaternion_geometric.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
+#include "gtx/norm.hpp"
 
 namespace Core::MathHelpers
 {
@@ -25,5 +28,37 @@ namespace Core::MathHelpers
 	{
 		if (number < 0) return -1;
 		return 1;
+	}
+
+	static glm::vec2 GetMidPoint(glm::vec2 a, glm::vec2 b)
+	{
+		return {(a.x + b.x) * 0.5f, (a.y + b.y) * 0.5f};
+	}
+
+	static float PointLineSegmentDistance(const glm::vec2& pointA,
+	const glm::vec2& pointB,
+	const glm::vec2& referencePoint,
+	glm::vec2& closestPoint)
+	{
+		glm::vec2 ab = pointB - pointA;
+		glm::vec2 ap = referencePoint - pointA;
+
+		float projection = glm::dot(ap, ab);
+		float magnitudeAlongLine = projection / glm::length2(ab);
+
+		if (magnitudeAlongLine <= 0.0f)
+		{
+			closestPoint = pointA;
+		}
+		else if (magnitudeAlongLine >= 1.0f)
+		{
+			closestPoint = pointB;
+		}
+		else
+		{
+			closestPoint = pointA + ab * magnitudeAlongLine;
+		}
+
+		return glm::distance(referencePoint, closestPoint);
 	}
 }
