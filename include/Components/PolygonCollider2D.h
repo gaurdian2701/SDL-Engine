@@ -176,5 +176,6 @@ namespace Components
 
 	public:
 		bool IsColliding = false;
+		bool MatchScaleWithTransform = true;
 	};
 }

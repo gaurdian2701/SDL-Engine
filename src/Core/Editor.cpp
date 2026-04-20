@@ -105,13 +105,20 @@ void Core::Editor::Update(const float deltaTime)
 
                 if (auto polygonCollider = gameObject->GetComponent<Components::PolygonCollider2D>())
                 {
-                    polygonCollider->SetBoxHalfExtents(glm::vec2(transform->Scale.x * 0.5f, transform->Scale.y * 0.5f));
+                    if (polygonCollider->MatchScaleWithTransform)
+                    {
+                        polygonCollider->SetBoxHalfExtents(transform->Scale * 0.5f);
+                    }
                 }
 
                 if (auto circleCollider = gameObject->GetComponent<Components::CircleCollider2D>())
                 {
-                    circleCollider->SetRadius(glm::length(transform->Scale) * 0.5f);
+                    if (circleCollider->MatchScaleWithTransform)
+                    {
+                        circleCollider->SetRadius(glm::length(transform->Scale) * 0.5f);
+                    }
                 }
+
                 ImGui::Separator();
             }
 

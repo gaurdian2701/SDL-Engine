@@ -24,6 +24,30 @@ void Core::ECS::Systems::PhysicsSystem::RegisterInterestedComponents()
 void Core::ECS::Systems::PhysicsSystem::BeginSystem()
 {
 	m_broadPhase = new Physics::NaiveBroadPhase();
+
+	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::CircleCollider2D>(
+	[&](const Components::Transform *transform, Components::CircleCollider2D *circleCollider)
+	{
+		circleCollider->SetPosition(transform->Position);
+		circleCollider->IsColliding = false;
+
+		if (circleCollider->MatchScaleWithTransform)
+		{
+			circleCollider->SetRadius(glm::length(transform->Scale) * 0.5f);
+		}
+	});
+
+	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::PolygonCollider2D>(
+		[&](const Components::Transform *transform, Components::PolygonCollider2D *polygon)
+		{
+			polygon->UpdatePositionAndRotation(transform->Position, transform->Rotation);
+			polygon->IsColliding = false;
+
+			if (polygon->MatchScaleWithTransform)
+			{
+				polygon->SetBoxHalfExtents(transform->Scale * 0.5f);
+			}
+		});
 }
 
 void Core::ECS::Systems::PhysicsSystem::UpdateSystem(const float deltaTime)

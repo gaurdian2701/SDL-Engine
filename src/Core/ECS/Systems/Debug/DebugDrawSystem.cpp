@@ -71,11 +71,9 @@ void Core::ECS::Systems::DebugDrawSystem::UpdateSystem(const float deltaTime)
             else
             {
                 m_drawList.emplace_back(DebugDrawData(CircleDrawData(transform->Position, circleCollider->GetRadius()),
-                    255, 0, 0, 255));
+                    0, 255, 0, 255));
             }
         });
-
-    PrintDebug("Draw list size: %llu\n", m_drawList.size());
 }
 
 void Core::ECS::Systems::DebugDrawSystem::DrawHollowCircle(const glm::vec2 &centerWorldPos, const float radius, float r, float g, float b, float a)
