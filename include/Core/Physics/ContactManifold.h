@@ -1,4 +1,7 @@
 ﻿#pragma once
+#include <utility>
+
+#include "ContactPoints.h"
 #include "vec2.hpp"
 
 namespace Components
@@ -18,19 +21,22 @@ namespace Core::Physics::PhysicsData
 			Components::Rigidbody2D* someRigidbodyA,
 			Components::Rigidbody2D* someRigidbodyB,
 			glm::vec2&& someContactNormal,
-			float somePenetrationDepth) :
+			float somePenetrationDepth,
+			ContactPoints contacts):
 			TransformA(someTransformA),
 			TransformB(someTransformB),
 			RigidbodyA(someRigidbodyA),
 			RigidbodyB(someRigidbodyB),
 			ContactNormal(someContactNormal),
-			PenetrationDepth(somePenetrationDepth)
+			PenetrationDepth(somePenetrationDepth),
+			Contacts(std::move(contacts))
 		{
 
 		}
 
 		~ContactManifold() = default;
 
+		ContactPoints Contacts = ContactPoints();
 		Components::Transform* TransformA = nullptr;
 		Components::Transform* TransformB = nullptr;
 		Components::Rigidbody2D* RigidbodyA = nullptr;

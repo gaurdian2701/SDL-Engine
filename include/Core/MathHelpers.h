@@ -61,4 +61,14 @@ namespace Core::MathHelpers
 
 		return glm::distance(referencePoint, closestPoint);
 	}
+
+	static float VectorCross(const glm::vec2& a, const glm::vec2& b)
+	{
+		return a.x * b.y - a.y * b.x;
+	}
+
+	static glm::vec2 ScalarCross(const glm::vec2& a, float s)
+	{
+		return glm::vec2(-s * a.y, s * a.x);
+	}
 }

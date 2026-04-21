@@ -89,11 +89,12 @@ namespace Core::Physics::ShapeOverlapFunctions
 		bool& aHasReferenceEdge,
 		std::size_t& referenceEdgeIndex)
 	{
-		float minSeparationDepth = std::numeric_limits<float>::max();
-		float bestSeparationA = std::numeric_limits<float>::lowest();
-		float bestSeparationB = std::numeric_limits<float>::lowest();
+		float bestSeparationA = std::numeric_limits<float>::max();
+		float bestSeparationB = std::numeric_limits<float>::max();
 		uint32_t bestIndexA = 0;
 		uint32_t bestIndexB = 0;
+		glm::vec2 bestAxisA = glm::vec2(0.0f);
+		glm::vec2 bestAxisB = glm::vec2(0.0f);
 		std::size_t numberOfPointsInPolygonA = polygonPointsA.size();
 		std::size_t numberOfPointsInPolygonB = polygonPointsB.size();
 		static float faceSwitchTolerance = 1e-4;
@@ -117,22 +118,20 @@ namespace Core::Physics::ShapeOverlapFunctions
 			ProjectPointsOnAxis(polygonPointsB, normalSeparatingAxis, maxBOnAxis, minBOnAxis);
 
 			//Using max and min projections, if a gap is found, return false
-			if (minAOnAxis >= maxBOnAxis || maxAOnAxis <= minBOnAxis)
+			if (minAOnAxis > maxBOnAxis || maxAOnAxis < minBOnAxis)
 			{
 				return false;
 			}
 
 			//Find the magnitude of separation
-			float axisDepth = std::min(maxBOnAxis - minAOnAxis, maxAOnAxis - minBOnAxis);
-			if (axisDepth < minSeparationDepth)
+			float axisDepth = std::min(maxAOnAxis, maxBOnAxis) - std::max(minAOnAxis, minBOnAxis);
+			if (axisDepth < bestSeparationA)
 			{
-				minSeparationDepth = axisDepth;
+				bestSeparationA = axisDepth;
+				bestAxisA = normalSeparatingAxis;
 				bestIndexA = pointIndex;
 			}
 		}
-
-		bestSeparationA = minSeparationDepth;
-		minSeparationDepth = std::numeric_limits<float>::max();
 
 		//Repeat for points on B
 		for (uint32_t pointIndex = 0; pointIndex < numberOfPointsInPolygonB; pointIndex++)
@@ -157,15 +156,14 @@ namespace Core::Physics::ShapeOverlapFunctions
 			}
 
 			//Find the magnitude of separation
-			float axisDepth = std::min(maxBOnAxis - minAOnAxis, maxAOnAxis - minBOnAxis);
-			if (axisDepth < minSeparationDepth)
+			float axisDepth = std::min(maxAOnAxis, maxBOnAxis) - std::max(minAOnAxis, minBOnAxis);
+			if (axisDepth < bestSeparationB)
 			{
-				minSeparationDepth = axisDepth;
+				bestSeparationB = axisDepth;
+				bestAxisB = normalSeparatingAxis;
 				bestIndexB = pointIndex;
 			}
 		}
-
-		bestSeparationB = minSeparationDepth;
 
 		//Pick the reference edge for contact point generation - the one with the larger separation along normal
 		//is considered the reference edge because it's the shallowest penetration direction.
@@ -173,36 +171,37 @@ namespace Core::Physics::ShapeOverlapFunctions
 		//1. Minimizes numerical errors in contact point calculation
 		//2. Provides consistent incident and reference edge selection per frame.
 
-		if (bestSeparationA > bestSeparationB + faceSwitchTolerance)
+		if (bestSeparationA < bestSeparationB - faceSwitchTolerance)
 		{
-			minSeparationDepth = bestSeparationA;
+			penetrationDepth = bestSeparationA;
 			referenceEdgeIndex = bestIndexA;
 			referenceEdge = polygonPointsA[(bestIndexA + 1) % numberOfPointsInPolygonA] - polygonPointsA[bestIndexA];
 			aHasReferenceEdge = true;
+			contactNormal = bestAxisA;
 		}
 		else
 		{
-			minSeparationDepth = bestSeparationB;
+			penetrationDepth = bestSeparationB;
 			referenceEdgeIndex = bestIndexB;
 			referenceEdge = polygonPointsB[(bestIndexB + 1) % numberOfPointsInPolygonB] - polygonPointsB[bestIndexB];
 			aHasReferenceEdge = false;
+			contactNormal = bestAxisB;
 		}
-		contactNormal = glm::normalize(glm::vec2(-referenceEdge.y, referenceEdge.x));
+
+		contactNormal = glm::normalize(contactNormal);
 
 DoDebugCode(
 		glm::vec2 centerScreenA = Core::ScreenHelperFunctions::WorldToScreen(polygonCenterA);
 		glm::vec2 centerScreenB = Core::ScreenHelperFunctions::WorldToScreen(polygonCenterB);
 		glm::vec2 screenAEnd = Core::ScreenHelperFunctions::WorldToScreen(
-			polygonCenterA + minSeparationDepth * glm::normalize(contactNormal));
+			polygonCenterA + penetrationDepth * glm::normalize(contactNormal));
 		glm::vec2 screenBEnd = Core::ScreenHelperFunctions::WorldToScreen(
-			polygonCenterB - minSeparationDepth * glm::normalize(contactNormal));
+			polygonCenterB - penetrationDepth * glm::normalize(contactNormal));
 
 		SDL_SetRenderDrawColor(Application::GetCoreInstance().GetMainRenderer(), 255, 0, 0, 255);
 		SDL_RenderLine(Application::GetCoreInstance().GetMainRenderer(), centerScreenA.x, centerScreenA.y, screenAEnd.x, screenAEnd.y);
 		SDL_RenderLine(Application::GetCoreInstance().GetMainRenderer(), centerScreenB.x, centerScreenB.y, screenBEnd.x, screenBEnd.y);
 );
-
-		penetrationDepth = minSeparationDepth;
 
 		glm::vec2 directionVector = polygonCenterB - polygonCenterA;
 		if (glm::dot(contactNormal, directionVector) < 0.0f)

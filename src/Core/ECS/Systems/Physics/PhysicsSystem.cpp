@@ -84,6 +84,7 @@ void Core::ECS::Systems::PhysicsSystem::IntegratePositions(const float physicsTi
 	[&](Components::Transform *transform, Components::Rigidbody2D *rigidbody)
 	{
 		transform->Position += rigidbody->LinearVelocity * physicsTimeStep;
+		transform->Rotation += rigidbody->AngularVelocity * physicsTimeStep;
 		rigidbody->LinearAcceleration = glm::vec2(0.0f);
 	});
 }

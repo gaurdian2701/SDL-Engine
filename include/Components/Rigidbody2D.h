@@ -25,17 +25,38 @@ namespace Components
             }
         }
 
+        void SetMomentOfInertia(float someMomentOfInertia)
+        {
+            if (someMomentOfInertia > 0.0f)
+            {
+                if (!isStatic)
+                {
+                    momentOfInertia = someMomentOfInertia;
+                    inverseMomentOfInertia /= someMomentOfInertia;
+                }
+            }
+            else
+            {
+                momentOfInertia = 0.0f;
+                inverseMomentOfInertia = 0.0f;
+            }
+        }
+
         void SetIsStatic(bool staticBool)
         {
             if (staticBool)
             {
                 mass = 0.0f;
                 inverseMass = 0.0f;
+                momentOfInertia = 0.0f;
+                inverseMomentOfInertia = 0.0f;
             }
             else
             {
                 mass = 1.0f;
                 inverseMass = 1.0f;
+                momentOfInertia = 1.0f;
+                inverseMomentOfInertia = 1.0f;
             }
             isStatic = staticBool;
         }
@@ -48,6 +69,16 @@ namespace Components
         float GetInverseMass() const
         {
             return inverseMass;
+        }
+
+        float GetMomentOfInertia() const
+        {
+            return momentOfInertia;
+        }
+
+        float GetInverseMomentOfInertia() const
+        {
+            return inverseMomentOfInertia;
         }
 
         bool IsStatic()
@@ -64,11 +95,13 @@ namespace Components
         glm::vec2 LinearVelocity = glm::vec2(0.0f);
         glm::vec2 LinearAcceleration = glm::vec2(0.0f);
         float Restitution = 0.1f;
+        float AngularVelocity = 0.0f;
 
     private:
-        float momentOfInertia = 0.0f;
         float mass = 1.0f;
         float inverseMass = 1.0f;
+        float momentOfInertia = 0.0f;
+        float inverseMomentOfInertia = 0.0f;
         bool isStatic = false;
     };
 }

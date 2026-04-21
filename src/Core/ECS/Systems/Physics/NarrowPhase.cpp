@@ -9,6 +9,7 @@
 #include "Core/Physics/ContactManifold.h"
 #include "Core/Physics/CollisionPair.h"
 #include "Core/Physics/ContactPointFunctions.h"
+#include "Core/Physics/ContactPoints.h"
 
 void Core::Physics::NarrowPhase::GenerateManifolds(
 	const std::vector<Core::Physics::PhysicsData::CollisionPair>& collisionPairs,
@@ -37,19 +38,20 @@ void Core::Physics::NarrowPhase::DoCircleVsCircle(const Core::Physics::PhysicsDa
 		circleA->IsColliding = true;
 		circleB->IsColliding = true;
 
-		glm::vec2 contactPoint = glm::vec2(0.0f);
-
-		FindCircleVsCircleContactPoint(*circleA, *circleB, contactPoint);
-
-		DoDebugCode(
-			ECS::Systems::DebugDrawSystem* debugSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::DebugDrawSystem>();
-			debugSystem->DrawHollowCircle(contactPoint, 10.0f, 255, 240, 0, 255);
-			);
-
 		//Resolve Circle Vs Circle
 		glm::vec2 directionVector = secondCircleTransform->Position - firstCircleTransform->Position;
+
 		if (glm::length(directionVector) > 0.0f)
 		{
+			ContactPoints contactPoints = ContactPoints();
+			contactPoints.NumberOfContactPoints = 1;
+			FindCircleVsCircleContactPoint(*circleA, *circleB, contactPoints.Points[0]);
+
+			DoDebugCode(
+				ECS::Systems::DebugDrawSystem* debugSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::DebugDrawSystem>();
+				debugSystem->DrawHollowCircle(contactPoints.Points[0], 10.0f, 255, 240, 0, 255);
+				);
+
 			glm::vec2 contactNormal = glm::normalize(directionVector);
 			float penetrationDepth = radiusSum - glm::distance(firstCircleTransform->Position, secondCircleTransform->Position);
 
@@ -57,7 +59,8 @@ void Core::Physics::NarrowPhase::DoCircleVsCircle(const Core::Physics::PhysicsDa
 				Core::ECS::ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityA),
 				Core::ECS::ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityB),
 				std::forward<glm::vec2>(contactNormal),
-				penetrationDepth);
+				penetrationDepth,
+				contactPoints);
 		}
 	}
 }
@@ -86,16 +89,17 @@ void Core::Physics::NarrowPhase::DoPolygonVsCircle(const Core::Physics::PhysicsD
 		polygon->IsColliding = true;
 		circle->IsColliding = true;
 
-		glm::vec2 contactPoint = glm::vec2(0.0f);
+		ContactPoints contactPoints = ContactPoints();
+		contactPoints.NumberOfContactPoints = 1;
 
 		FindPolygonVsCircleContactPoint(*polygon,
 			*circle,
-			contactPoint,
+			contactPoints.Points[0],
 			closestPolygonVertexIndex);
 
 		DoDebugCode(
 		ECS::Systems::DebugDrawSystem* debugSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::DebugDrawSystem>();
-		debugSystem->DrawHollowCircle(contactPoint, 10.0f, 255, 240, 0, 255);
+		debugSystem->DrawHollowCircle(contactPoints.Points[0], 10.0f, 255, 240, 0, 255);
 		);
 
 		manifolds.emplace_back(polygonTransform,
@@ -103,7 +107,8 @@ void Core::Physics::NarrowPhase::DoPolygonVsCircle(const Core::Physics::PhysicsD
 			Core::ECS::ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityA),
 			Core::ECS::ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityB),
 			std::forward<glm::vec2>(contactNormal),
-			penetrationDepth);
+			penetrationDepth,
+			contactPoints);
 	}
 }
 
@@ -138,8 +143,8 @@ void Core::Physics::NarrowPhase::DoPolygonVsPolygon(const Core::Physics::Physics
 		firstPolygon->IsColliding = true;
 		secondPolygon->IsColliding = true;
 
-		static std::vector<glm::vec2> contactPoints = std::vector<glm::vec2>(2);
-		contactPoints.clear();
+		ContactPoints contactPoints = ContactPoints();
+		contactPoints.NumberOfContactPoints = 2;
 
 		FindPolygonVsPolygonContactPoints(*firstPolygon,
 			*secondPolygon,
@@ -147,17 +152,17 @@ void Core::Physics::NarrowPhase::DoPolygonVsPolygon(const Core::Physics::Physics
 			referenceEdge,
 			contactNormal,
 			referenceEdgeIndex,
-			contactPoints);
+			contactPoints.Points);
 
 		DoDebugCode(
 		ECS::Systems::DebugDrawSystem* debugSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::DebugDrawSystem>();
-		if (!contactPoints.empty())
+		if (!contactPoints.Points.empty())
 		{
-			debugSystem->DrawHollowCircle(contactPoints[0], 10.0f, 255, 240, 0, 255);
+			debugSystem->DrawHollowCircle(contactPoints.Points[0], 10.0f, 255, 240, 0, 255);
 
-			if (contactPoints.size() > 1)
+			if (contactPoints.Points.size() > 1)
 			{
-				debugSystem->DrawHollowCircle(contactPoints[1], 10.0f, 255, 240, 0, 255);
+				debugSystem->DrawHollowCircle(contactPoints.Points[1], 10.0f, 255, 240, 0, 255);
 			}
 		}
 		);
@@ -167,7 +172,8 @@ void Core::Physics::NarrowPhase::DoPolygonVsPolygon(const Core::Physics::Physics
 			Core::ECS::ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityA),
 			Core::ECS::ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(pair.EntityB),
 			std::forward<glm::vec2>(contactNormal),
-			penetrationDepth);
+			penetrationDepth,
+			contactPoints);
 	}
 }
 
