@@ -10,5 +10,6 @@ namespace Components
 
 		glm::vec2 MinPoint = glm::vec2(FLT_MAX);
 		glm::vec2 MaxPoint = glm::vec2(FLT_MIN);
+		bool Valid = false;
 	};
 }
