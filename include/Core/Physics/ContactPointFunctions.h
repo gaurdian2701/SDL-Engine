@@ -27,7 +27,7 @@ namespace Core::Physics
         }
 
         //Edge case where there is only one contact point and it has passed through the reference edge
-        if (MathHelpers::GetSign(distance1) != MathHelpers::GetSign(distance2) && contactPointIndex < 2)
+        if (distance1 * distance2 < 0.0f && contactPointIndex < 2)
         {
             float percentageAcrossLineSegment = distance2 / (distance2 - distance1);
             glm::vec2 intersectionPoint = p2 + (p1 - p2) * percentageAcrossLineSegment;
@@ -41,26 +41,31 @@ namespace Core::Physics
     //Uses Sutherland-Hodgeman clipping
     static void FindPolygonVsPolygonContactPoints(const Components::PolygonCollider2D& polygonA,
         const Components::PolygonCollider2D& polygonB,
+        const glm::vec2& contactNormal,
         const bool aHasReferenceEdge,
         const glm::vec2& referenceEdge,
-        const glm::vec2& contactNormal,
         const std::size_t& referenceEdgeIndex,
         std::vector<glm::vec2>& contactPoints,
         uint8_t& numberOfContactPoints)
     {
-        float lowestDotProduct = std::numeric_limits<float>::max();
-
         const auto& referencePolygonPoints = aHasReferenceEdge ? polygonA.GetVertices() : polygonB.GetVertices();
         const auto& incidentPolygonPoints = aHasReferenceEdge ? polygonB.GetVertices() : polygonA.GetVertices();
 
         std::size_t numberOfPointsInIncidentPolygon = incidentPolygonPoints.size();
         std::size_t numberOfPointsInReferencePolygon = referencePolygonPoints.size();
         glm::vec2 referenceEdgeTangent = glm::normalize(referenceEdge);
-        glm::vec2 referenceEdgeNormal = glm::vec2(-referenceEdgeTangent.y, referenceEdgeTangent.x);
+        glm::vec2 referenceEdgeNormal = glm::normalize(glm::vec2(referenceEdge.y, -referenceEdge.x));
         glm::vec2 referenceEdgePointA = referencePolygonPoints[referenceEdgeIndex];
         glm::vec2 referenceEdgePointB = referencePolygonPoints[(referenceEdgeIndex + 1) % numberOfPointsInReferencePolygon];
         float referenceEdgeLength = glm::length(referenceEdge);
         std::size_t incidentIndex = 0;
+
+        float lowestDotProduct = std::numeric_limits<float>::max();
+
+        // if (glm::dot(referenceEdgeNormal, contactNormal) < 0.0f)
+        // {
+        //     referenceEdgeNormal = -referenceEdgeNormal;
+        // }
 
         //First find the incident edge. This is the edge whose normal is the most anti-parallel/opposite
         //to the reference edge normal, i.e. the edge that is most "facing" the reference edge
@@ -69,7 +74,7 @@ namespace Core::Physics
             glm::vec2 currentEdge = incidentPolygonPoints[(pointIndex + 1) % numberOfPointsInIncidentPolygon] -
                 incidentPolygonPoints[pointIndex];
 
-            glm::vec2 currentNormal = glm::vec2(-currentEdge.y, currentEdge.x);
+            glm::vec2 currentNormal = glm::vec2(currentEdge.y, -currentEdge.x);
             currentNormal = glm::normalize(currentNormal);
             float currentDotProduct = glm::dot(currentNormal, referenceEdgeNormal);
 
@@ -84,25 +89,14 @@ namespace Core::Physics
         glm::vec2 incidentEdgePointB = incidentPolygonPoints[(incidentIndex + 1) % numberOfPointsInIncidentPolygon];
 
         //Next, we start clipping the incident edge.
-        //First check if the incident edge is within the length of the reference edge. If not, we can cancel out early.
         //We do this by projecting the points on the incident edge onto the reference edge.
-        float projectionA = glm::dot(incidentEdgePointA - referenceEdgePointA, referenceEdgeTangent);
-        float projectionB = glm::dot(incidentEdgePointB - referenceEdgePointA, referenceEdgeTangent);
-        float minProjection = std::min(projectionA, projectionB);
-        float maxProjection = std::max(projectionA, projectionB);
 
-        //If our incident edge is out of the bounds of the reference edge, cancel out early.
-        if (maxProjection < 0.0f|| minProjection > referenceEdgeLength)
-        {
-            return;
-        }
-
-        //Clip the points within the reference edge, a1->a2
         if (contactPoints.size() != 2)
         {
             contactPoints = std::vector<glm::vec2>(2);
         }
 
+        //Clip the points within the reference edge, a1->a2
         //Start with reference edge point A, cancel early if we do not find any contact points
         numberOfContactPoints = ClipLineSegmentToPoint(incidentEdgePointA,
             incidentEdgePointB,
@@ -122,19 +116,20 @@ namespace Core::Physics
         referenceEdgePointB,
         contactPoints);
 
-        //Finally, keep points that are behind/passed through the reference face, use slop
-        uint8_t newCount = 0;
+        std::uint8_t finalNumberOfContactPoints = 0;
+        float referenceOffset = glm::dot(referenceEdgePointA, referenceEdgeNormal);
 
-        for (uint8_t i = 0; i < numberOfContactPoints; i++)
+        for (uint8_t pointIndex = 0; pointIndex < numberOfContactPoints; ++pointIndex)
         {
-            float separation = glm::dot(contactPoints[i] - referenceEdgePointA, referenceEdgeNormal);
+            float separation = glm::dot(referenceEdgeNormal, contactPoints[pointIndex]) - referenceOffset;
 
             if (separation <= 0.0f)
             {
-                contactPoints[newCount++] = contactPoints[i];
+                contactPoints[finalNumberOfContactPoints++] = contactPoints[pointIndex];
             }
         }
-        numberOfContactPoints = newCount;
+
+        numberOfContactPoints = finalNumberOfContactPoints;
     }
 
     static void FindCircleVsCircleContactPoint(const Components::CircleCollider2D& circleA,

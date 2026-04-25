@@ -55,30 +55,6 @@ namespace Core::Physics::ShapeOverlapFunctions
 		minProjectionValueOnAxis = min;
 	}
 
-	static inline void ProjectCircleOnAxis(const glm::vec2& center,
-		float radius,
-		const glm::vec2& axis,
-		float& maxProjectionValueOnAxis,
-		float& minProjectionValueOnAxis)
-	{
-		//A vector signifying the direction of the separation axis along with the magnitude of the radius
-		glm::vec2 directionAndRadiusVector = glm::normalize(axis) * radius;
-
-		//We get the two edge points of the circle
-		glm::vec2 rightPoint = center + directionAndRadiusVector;
-		glm::vec2 leftPoint = center - directionAndRadiusVector;
-
-		maxProjectionValueOnAxis = glm::dot(rightPoint, axis);
-		minProjectionValueOnAxis = glm::dot(leftPoint, axis);
-
-		//But max might not actually be the max value and min might not actually be the min value in some cases,
-		//so we swap them in those cases
-		if (maxProjectionValueOnAxis < minProjectionValueOnAxis)
-		{
-			std::swap(maxProjectionValueOnAxis, minProjectionValueOnAxis);
-		}
-	}
-
 	static inline void FindReferenceEdge(const std::vector<glm::vec2>& polygonVerticesA,
 		const std::vector<glm::vec2>& polygonVerticesB,
 		const glm::vec2& contactNormal,
@@ -86,10 +62,11 @@ namespace Core::Physics::ShapeOverlapFunctions
 		std::size_t& referenceEdgeIndex,
 		bool& aHasReferenceEdge)
 	{
-		//Find the reference edge for contact point generation - Its the edge whose	outward normal
-		//is most aligned with the collision normal.
+		//Find the reference edge for contact point generation - Its the edge which is
+		//most perpendicular to the contact normal. In other words, it's the edge
+		//whose normal is most aligned with the contact normal
 
-		//Loop through all the normals of both polygons and find the edge which is most aligned with the contact normal.
+		//Loop through all the normals of both polygons and find the edge which is most perpendicular with the contact normal
 		const uint8_t numberOfVerticesA = polygonVerticesA.size();
 		const uint8_t numberOfVerticesB = polygonVerticesB.size();
 
@@ -99,11 +76,13 @@ namespace Core::Physics::ShapeOverlapFunctions
 		float maxAlignmentA = std::numeric_limits<float>::lowest();
 		float maxAlignmentB = std::numeric_limits<float>::lowest();
 
+		float faceSwitchTolerance = 1e-4;
+
 		//Start with A
 		for (uint8_t i = 0; i < numberOfVerticesA; ++i)
 		{
 			const glm::vec2 currentEdge = polygonVerticesA[(i + 1) % numberOfVerticesA] - polygonVerticesA[i];
-			glm::vec2 edgeNormal = glm::normalize(glm::vec2(-currentEdge.y, currentEdge.x));
+			glm::vec2 edgeNormal = glm::normalize(glm::vec2(currentEdge.y, -currentEdge.x));
 			float currentAlignment = glm::dot(edgeNormal, contactNormal);
 			if (currentAlignment > maxAlignmentA)
 			{
@@ -116,8 +95,8 @@ namespace Core::Physics::ShapeOverlapFunctions
 		for (uint8_t i = 0; i < numberOfVerticesB; ++i)
 		{
 			const glm::vec2 currentEdge = polygonVerticesB[(i + 1) % numberOfVerticesB] - polygonVerticesB[i];
-			glm::vec2 edgeNormal = glm::normalize(glm::vec2(-currentEdge.y, currentEdge.x));
-			float currentAlignment = glm::dot(edgeNormal, contactNormal);
+			glm::vec2 edgeNormal = glm::normalize(glm::vec2(currentEdge.y, -currentEdge.x));
+			float currentAlignment = glm::dot(edgeNormal, -contactNormal);
 			if (currentAlignment > maxAlignmentB)
 			{
 				bestIndexB = i;
@@ -125,7 +104,7 @@ namespace Core::Physics::ShapeOverlapFunctions
 			}
 		}
 
-		if (maxAlignmentA > maxAlignmentB)
+		if (maxAlignmentA > maxAlignmentB + faceSwitchTolerance)
 		{
 			aHasReferenceEdge = true;
 			referenceEdge = polygonVerticesA[(bestIndexA + 1) % numberOfVerticesA] - polygonVerticesA[bestIndexA];
@@ -155,8 +134,6 @@ namespace Core::Physics::ShapeOverlapFunctions
 		std::size_t numberOfVerticesA = polygonVerticesA.size();
 		std::size_t numberOfVerticesB = polygonVerticesB.size();
 
-		static float faceSwitchTolerance = 1e-4;
-
 		//Separating Axis Theorem for detecting collisions between polygons
 		//First start for points on polygon A
 		for (uint8_t pointIndex = 0; pointIndex < numberOfVerticesA; pointIndex++)
@@ -166,7 +143,7 @@ namespace Core::Physics::ShapeOverlapFunctions
 			const glm::vec2& nextPoint = polygonVerticesA[(pointIndex + 1)%numberOfVerticesA];
 			const glm::vec2 edge = nextPoint - currentPoint;
 
-			glm::vec2 normalSeparatingAxis = glm::vec2(-edge.y, edge.x);
+			glm::vec2 normalSeparatingAxis = glm::vec2(edge.y, -edge.x);
 			normalSeparatingAxis = glm::normalize(normalSeparatingAxis);
 
 			//Using the normal as the new axis, project all edges of both polygons onto that axis and find their
@@ -197,7 +174,7 @@ namespace Core::Physics::ShapeOverlapFunctions
 			const glm::vec2& currentPoint = polygonVerticesB[pointIndex];
 			const glm::vec2& nextPoint = polygonVerticesB[(pointIndex + 1)%numberOfVerticesB];
 			const glm::vec2 edge = nextPoint - currentPoint;
-			glm::vec2 normalSeparatingAxis = glm::vec2(-edge.y, edge.x);
+			glm::vec2 normalSeparatingAxis = glm::vec2(edge.y, -edge.x);
 			normalSeparatingAxis = glm::normalize(normalSeparatingAxis);
 
 			//Using the normal as the new axis, project all edges of both polygons onto that axis and find their
@@ -221,8 +198,10 @@ namespace Core::Physics::ShapeOverlapFunctions
 			}
 		}
 
+		static float bias = 0.5f;
+
 		//find contact normal and min penetration
-		if (minPenetrationA < minPenetrationB)
+		if (minPenetrationA < minPenetrationB - bias)
 		{
 			penetrationDepth = minPenetrationA;
 			contactNormal = bestSeparatingAxisA;
@@ -252,6 +231,30 @@ DoDebugCode(
 			contactNormal = -contactNormal;
 		}
 		return true;
+	}
+
+	static inline void ProjectCircleOnAxis(const glm::vec2& center,
+		float radius,
+		const glm::vec2& axis,
+		float& maxProjectionValueOnAxis,
+		float& minProjectionValueOnAxis)
+	{
+		//A vector signifying the direction of the separation axis along with the magnitude of the radius
+		glm::vec2 directionAndRadiusVector = axis * radius;
+
+		//We get the two edge points of the circle
+		glm::vec2 rightPoint = center + directionAndRadiusVector;
+		glm::vec2 leftPoint = center - directionAndRadiusVector;
+
+		maxProjectionValueOnAxis = glm::dot(rightPoint, axis);
+		minProjectionValueOnAxis = glm::dot(leftPoint, axis);
+
+		//But max might not actually be the max value and min might not actually be the min value in some cases,
+		//so we swap them in those cases
+		if (maxProjectionValueOnAxis < minProjectionValueOnAxis)
+		{
+			std::swap(maxProjectionValueOnAxis, minProjectionValueOnAxis);
+		}
 	}
 
 	static inline bool PolygonVsCircle(const glm::vec2& polygonCenter,
@@ -294,8 +297,8 @@ DoDebugCode(
 			}
 
 			//Find the magnitude of separation
-			axisDepth = std::min(glm::length(maxCirclePointOnAxis - minPolygonPointOnAxis),
-				glm::length(maxPolygonPointOnAxis - minCirclePointOnAxis));
+			axisDepth = std::min(maxCirclePointOnAxis - minPolygonPointOnAxis,
+				maxPolygonPointOnAxis - minCirclePointOnAxis);
 			if (axisDepth < minSeparationDepth)
 			{
 				minSeparationDepth = axisDepth;
@@ -332,16 +335,12 @@ DoDebugCode(
 		}
 
 		//Find the magnitude of separation
-		axisDepth = std::min(glm::length(maxCirclePointOnAxis - minPolygonPointOnAxis), glm::length(maxPolygonPointOnAxis - minCirclePointOnAxis));
+		axisDepth = std::min(maxCirclePointOnAxis - minPolygonPointOnAxis, maxPolygonPointOnAxis - minCirclePointOnAxis);
 		if (axisDepth < minSeparationDepth)
 		{
 			minSeparationDepth = axisDepth;
 			contactNormal = separatingAxis;
 		}
-
-		//Since we were computing the depth with un-normalized axisNormal, we divide by the length of the normal
-		//here to get the proper depth as if it was computed with the normalized axis normal
-		minSeparationDepth /= glm::length(contactNormal);
 
 DoDebugCode(
 		glm::vec2 polygonCenterInScreenCoords = Core::ScreenHelperFunctions::WorldToScreen(polygonCenter);

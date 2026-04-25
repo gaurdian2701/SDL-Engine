@@ -152,9 +152,9 @@ void Core::Physics::NarrowPhase::DoPolygonVsPolygon(const Core::Physics::Physics
 
 		FindPolygonVsPolygonContactPoints(*polygonA,
 			*polygonB,
+			contactNormal,
 			aHasReferenceEdge,
 			referenceEdge,
-			contactNormal,
 			referenceEdgeIndex,
 			contactPoints.Points,
 			contactPoints.NumberOfContactPoints);

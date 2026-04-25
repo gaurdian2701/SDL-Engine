@@ -27,7 +27,7 @@ void Core::Physics::Solver::Solve(std::vector<PhysicsData::ContactManifold> &man
 				float inverseInertiaA = manifold.RigidbodyA->GetInverseMomentOfInertia();
 				float inverseInertiaB = manifold.RigidbodyB->GetInverseMomentOfInertia();
 
-				const float positionalCorrectionPercentage = 0.4f;
+				const float positionalCorrectionPercentage = 0.2f;
 				const float slop = 0.01f;
 
 				for (std::uint8_t index = 0; index < manifold.Contacts.NumberOfContactPoints; index++)
@@ -58,6 +58,12 @@ void Core::Physics::Solver::Solve(std::vector<PhysicsData::ContactManifold> &man
 						continue;
 					}
 
+					//nullify restitution at small speeds
+					if (std::abs(contactVelocityMagnitude) < 1.0f)
+					{
+						restitutionConstant = 0.0f;
+					}
+
 					float impulseScalar = -(1 + restitutionConstant) * contactVelocityMagnitude;
 
 					float aVecToContactPerpDotNormal = glm::dot(aVecToContactPointPerp, manifold.ContactNormal);
@@ -68,6 +74,7 @@ void Core::Physics::Solver::Solve(std::vector<PhysicsData::ContactManifold> &man
 							(bVecToContactPerpDotNormal * bVecToContactPerpDotNormal) * inverseInertiaB;
 
 					glm::vec2 finalImpulse = impulseScalar * manifold.ContactNormal;
+					finalImpulse /= manifold.Contacts.NumberOfContactPoints;
 
 					//Apply linear impulses
 					manifold.RigidbodyA->LinearVelocity -= finalImpulse * inverseMassA;
