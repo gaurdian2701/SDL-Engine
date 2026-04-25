@@ -57,15 +57,9 @@ namespace Core::Physics
         glm::vec2 referenceEdgeNormal = glm::normalize(glm::vec2(referenceEdge.y, -referenceEdge.x));
         glm::vec2 referenceEdgePointA = referencePolygonPoints[referenceEdgeIndex];
         glm::vec2 referenceEdgePointB = referencePolygonPoints[(referenceEdgeIndex + 1) % numberOfPointsInReferencePolygon];
-        float referenceEdgeLength = glm::length(referenceEdge);
         std::size_t incidentIndex = 0;
 
         float lowestDotProduct = std::numeric_limits<float>::max();
-
-        // if (glm::dot(referenceEdgeNormal, contactNormal) < 0.0f)
-        // {
-        //     referenceEdgeNormal = -referenceEdgeNormal;
-        // }
 
         //First find the incident edge. This is the edge whose normal is the most anti-parallel/opposite
         //to the reference edge normal, i.e. the edge that is most "facing" the reference edge
