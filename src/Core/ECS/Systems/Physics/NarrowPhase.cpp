@@ -79,7 +79,7 @@ void Core::Physics::NarrowPhase::DoPolygonVsCircle(const Core::Physics::PhysicsD
 	std::uint32_t closestPolygonVertexIndex = 0;
 
 	if (Core::Physics::ShapeOverlapFunctions::PolygonVsCircle(polygonTransform->Position,
-				polygon->GetPoints(),
+				polygon->GetVertices(),
 				circleTransform->Position,
 				circle->GetRadius(),
 				penetrationDepth,
@@ -120,9 +120,9 @@ void Core::Physics::NarrowPhase::DoPolygonVsPolygon(const Core::Physics::Physics
 	bool aHasReferenceEdge = false;
 	std::size_t referenceEdgeIndex = 0;
 
-	auto firstPolygon =
+	auto polygonA =
 		Core::ECS::ECSManager::GetInstance().GetComponent<Components::PolygonCollider2D>(pair.EntityA);
-	auto secondPolygon =
+	auto polygonB =
 		Core::ECS::ECSManager::GetInstance().GetComponent<Components::PolygonCollider2D>(pair.EntityB);
 
 	auto firstPolygonTransform =
@@ -130,37 +130,42 @@ void Core::Physics::NarrowPhase::DoPolygonVsPolygon(const Core::Physics::Physics
 	auto secondPolygonTransform =
 		Core::ECS::ECSManager::GetInstance().GetComponent<Components::Transform>(pair.EntityB);
 
-	if (Core::Physics::ShapeOverlapFunctions::PolygonVsPolygon(firstPolygon->GetCenter(),
-				secondPolygon->GetCenter(),
-				firstPolygon->GetPoints(),
-				secondPolygon->GetPoints(),
+	if (Core::Physics::ShapeOverlapFunctions::PolygonVsPolygon(polygonA->GetCenter(),
+				polygonB->GetCenter(),
+				polygonA->GetVertices(),
+				polygonB->GetVertices(),
 				penetrationDepth,
-				contactNormal,
-				referenceEdge,
-				aHasReferenceEdge,
-				referenceEdgeIndex))
+				contactNormal))
 	{
-		firstPolygon->IsColliding = true;
-		secondPolygon->IsColliding = true;
+		polygonA->IsColliding = true;
+		polygonB->IsColliding = true;
+
+		ShapeOverlapFunctions::FindReferenceEdge(polygonA->GetVertices(),
+			polygonB->GetVertices(),
+			contactNormal,
+			referenceEdge,
+			referenceEdgeIndex,
+			aHasReferenceEdge);
 
 		ContactPoints contactPoints = ContactPoints();
 		contactPoints.NumberOfContactPoints = 2;
 
-		FindPolygonVsPolygonContactPoints(*firstPolygon,
-			*secondPolygon,
+		FindPolygonVsPolygonContactPoints(*polygonA,
+			*polygonB,
 			aHasReferenceEdge,
 			referenceEdge,
 			contactNormal,
 			referenceEdgeIndex,
-			contactPoints.Points);
+			contactPoints.Points,
+			contactPoints.NumberOfContactPoints);
 
 		DoDebugCode(
 		ECS::Systems::DebugDrawSystem* debugSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::DebugDrawSystem>();
-		if (!contactPoints.Points.empty())
+		if (contactPoints.NumberOfContactPoints > 0)
 		{
 			debugSystem->DrawHollowCircle(contactPoints.Points[0], 10.0f, 255, 240, 0, 255);
 
-			if (contactPoints.Points.size() > 1)
+			if (contactPoints.NumberOfContactPoints > 1)
 			{
 				debugSystem->DrawHollowCircle(contactPoints.Points[1], 10.0f, 255, 240, 0, 255);
 			}

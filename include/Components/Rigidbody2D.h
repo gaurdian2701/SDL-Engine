@@ -12,8 +12,9 @@ namespace Components
         {
             if (someMass > 0.0f)
             {
-                if (!isStatic)
+                if (!isStatic && mass - someMass > 0.0f)
                 {
+                    massDirtyByte = true;
                     mass = someMass;
                     inverseMass = 1.0f / someMass;
                 }
@@ -32,7 +33,7 @@ namespace Components
                 if (!isStatic)
                 {
                     momentOfInertia = someMomentOfInertia;
-                    inverseMomentOfInertia /= someMomentOfInertia;
+                    inverseMomentOfInertia = 1 / someMomentOfInertia;
                 }
             }
             else
@@ -96,6 +97,7 @@ namespace Components
         glm::vec2 LinearAcceleration = glm::vec2(0.0f);
         float Restitution = 0.1f;
         float AngularVelocity = 0.0f;
+        bool massDirtyByte = true;
 
     private:
         float mass = 1.0f;

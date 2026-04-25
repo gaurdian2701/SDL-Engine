@@ -51,11 +51,11 @@ void Core::ECS::Systems::DebugDrawSystem::UpdateSystem(const float deltaTime)
         {
             if (polygon2D->IsColliding)
             {
-                m_drawList.emplace_back(DebugDrawData(PolygonDrawData(&polygon2D->GetPoints()), 255, 0, 0, 255));
+                m_drawList.emplace_back(DebugDrawData(PolygonDrawData(&polygon2D->GetVertices()), 255, 0, 0, 255));
             }
             else
             {
-                m_drawList.emplace_back(DebugDrawData(PolygonDrawData(&polygon2D->GetPoints()), 0, 255, 0, 255));
+                m_drawList.emplace_back(DebugDrawData(PolygonDrawData(&polygon2D->GetVertices()), 0, 255, 0, 255));
             }
         });
 

@@ -25,12 +25,13 @@ namespace Core::ECS::Systems
 
 		static PhysicsSystem* GetInstance();
 		void RegisterInterestedComponents() override;
+		void OnComponentAdded(const std::uint32_t entityID) override;
 		void BeginSystem() override;
 		void UpdateSystem(const float deltaTime) override;
 
 	private:
 		void IntegrateVelocities(const float physicsTimeStep);
-		void UpdateColliders();
+		void UpdateCollidersAndRigidbodies();
 		void IntegratePositions(const float physicsTimeStep);
 
 	private:

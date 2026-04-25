@@ -53,16 +53,17 @@ namespace Components
 			return center;
 		}
 
+
+		float CalculateMomentOfInertia(float mass) const
+		{
+			return mass * radius * radius * 0.5f;
+		}
+
 	private:
 		void UpdateAABB()
 		{
 			aabb.MinPoint = center - radius;
 			aabb.MaxPoint = center + radius;
-		}
-
-		float CalculateMomentOfInertia(float mass) const
-		{
-			return mass * radius * radius * 0.5f;
 		}
 
 	public:

@@ -24,7 +24,7 @@ namespace Components
 			return rotation;
 		}
 
-		const std::vector<glm::vec2>& GetPoints() const
+		const std::vector<glm::vec2>& GetVertices() const
 		{
 			return points;
 		}
@@ -75,6 +75,39 @@ namespace Components
 		const AABB& GetAABB() const
 		{
 			return aabb;
+		}
+
+		float CalculateMomentOfInertia(float mass) const
+		{
+			float area = 0.0f;
+			float mmoi = 0.0f; //mass moment of inertia
+			glm::vec2 center = glm::vec2(0.0f);
+
+			std::uint32_t prevIndex = points.size()-1;
+
+			for (std::uint32_t currentIndex = 0; currentIndex < points.size(); currentIndex++)
+			{
+				glm::vec2 currentPoint = points[currentIndex];
+				glm::vec2 previousPoint = points[prevIndex];
+
+				float areaStep = glm::cross(currentPoint, previousPoint) * 0.5f;
+				glm::vec2 centerStep = (currentPoint + previousPoint) / 3.0f;
+				float mmoiStep = areaStep * (glm::dot(currentPoint, currentPoint) +
+					glm::dot(previousPoint, previousPoint) +
+					glm::dot(currentPoint, previousPoint)) / 6.0f;
+
+				center = (center * area + centerStep * areaStep) / (area + areaStep);
+				area += areaStep;
+				mmoi += mmoiStep;
+
+				prevIndex = currentIndex;
+			}
+
+			float density = mass/area;
+			mmoi *= density;
+			mmoi -= mass * glm::dot(center, center);
+
+			return mmoi;
 		}
 
 	private:
@@ -134,39 +167,6 @@ namespace Components
 
 			aabb.MinPoint = minPoint;
 			aabb.MaxPoint = maxPoint;
-		}
-
-		std::tuple<float, float, glm::vec2> CalculateRigidbodyPropertiesFromShape(float mass) const
-		{
-			float area = 0.0f;
-			float mmoi = 0.0f; //mass moment of inertia
-			glm::vec2 center = glm::vec2(0.0f);
-
-			std::uint32_t prevIndex = points.size()-1;
-
-			for (std::uint32_t currentIndex = 0; currentIndex < points.size(); currentIndex++)
-			{
-				glm::vec2 currentPoint = points[currentIndex];
-				glm::vec2 previousPoint = points[prevIndex];
-
-				float areaStep = glm::cross(currentPoint, previousPoint) * 0.5f;
-				glm::vec2 centerStep = (currentPoint + previousPoint) / 3.0f;
-				float mmoiStep = areaStep * (glm::dot(currentPoint, currentPoint) +
-					glm::dot(previousPoint, previousPoint) +
-					glm::dot(currentPoint, previousPoint)) / 6.0f;
-
-				center = (center * area + centerStep * areaStep) / (area + areaStep);
-				area += areaStep;
-				mmoi += mmoiStep;
-
-				prevIndex = currentIndex;
-			}
-
-			float density = mass/area;
-			mmoi *= density;
-			mmoi -= mass * glm::dot(center, center);
-
-			return std::tuple(mass, mmoi, center);
 		}
 
 		AABB aabb = AABB();

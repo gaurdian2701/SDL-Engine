@@ -79,33 +79,91 @@ namespace Core::Physics::ShapeOverlapFunctions
 		}
 	}
 
+	static inline void FindReferenceEdge(const std::vector<glm::vec2>& polygonVerticesA,
+		const std::vector<glm::vec2>& polygonVerticesB,
+		const glm::vec2& contactNormal,
+		glm::vec2& referenceEdge,
+		std::size_t& referenceEdgeIndex,
+		bool& aHasReferenceEdge)
+	{
+		//Find the reference edge for contact point generation - Its the edge whose	outward normal
+		//is most aligned with the collision normal.
+
+		//Loop through all the normals of both polygons and find the edge which is most aligned with the contact normal.
+		const uint8_t numberOfVerticesA = polygonVerticesA.size();
+		const uint8_t numberOfVerticesB = polygonVerticesB.size();
+
+		uint8_t bestIndexA = 0;
+		uint8_t bestIndexB = 0;
+
+		float maxAlignmentA = std::numeric_limits<float>::lowest();
+		float maxAlignmentB = std::numeric_limits<float>::lowest();
+
+		//Start with A
+		for (uint8_t i = 0; i < numberOfVerticesA; ++i)
+		{
+			const glm::vec2 currentEdge = polygonVerticesA[(i + 1) % numberOfVerticesA] - polygonVerticesA[i];
+			glm::vec2 edgeNormal = glm::normalize(glm::vec2(-currentEdge.y, currentEdge.x));
+			float currentAlignment = glm::dot(edgeNormal, contactNormal);
+			if (currentAlignment > maxAlignmentA)
+			{
+				bestIndexA = i;
+				maxAlignmentA = currentAlignment;
+			}
+		}
+
+		//Then with B
+		for (uint8_t i = 0; i < numberOfVerticesB; ++i)
+		{
+			const glm::vec2 currentEdge = polygonVerticesB[(i + 1) % numberOfVerticesB] - polygonVerticesB[i];
+			glm::vec2 edgeNormal = glm::normalize(glm::vec2(-currentEdge.y, currentEdge.x));
+			float currentAlignment = glm::dot(edgeNormal, contactNormal);
+			if (currentAlignment > maxAlignmentB)
+			{
+				bestIndexB = i;
+				maxAlignmentB = currentAlignment;
+			}
+		}
+
+		if (maxAlignmentA > maxAlignmentB)
+		{
+			aHasReferenceEdge = true;
+			referenceEdge = polygonVerticesA[(bestIndexA + 1) % numberOfVerticesA] - polygonVerticesA[bestIndexA];
+			referenceEdgeIndex = bestIndexA;
+		}
+		else
+		{
+			aHasReferenceEdge = false;
+			referenceEdge = polygonVerticesB[(bestIndexB + 1) % numberOfVerticesB] - polygonVerticesB[bestIndexB];
+			referenceEdgeIndex = bestIndexB;
+		}
+	}
+
 	static inline bool PolygonVsPolygon(const glm::vec2& polygonCenterA,
 		const glm::vec2& polygonCenterB,
-		const std::vector<glm::vec2>& polygonPointsA,
-		const std::vector<glm::vec2>& polygonPointsB,
+		const std::vector<glm::vec2>& polygonVerticesA,
+		const std::vector<glm::vec2>& polygonVerticesB,
 		float& penetrationDepth,
-		glm::vec2& contactNormal,
-		glm::vec2& referenceEdge,
-		bool& aHasReferenceEdge,
-		std::size_t& referenceEdgeIndex)
+		glm::vec2& contactNormal)
 	{
-		float bestSeparationA = std::numeric_limits<float>::max();
-		float bestSeparationB = std::numeric_limits<float>::max();
-		uint32_t bestIndexA = 0;
-		uint32_t bestIndexB = 0;
-		glm::vec2 bestAxisA = glm::vec2(0.0f);
-		glm::vec2 bestAxisB = glm::vec2(0.0f);
-		std::size_t numberOfPointsInPolygonA = polygonPointsA.size();
-		std::size_t numberOfPointsInPolygonB = polygonPointsB.size();
+		float minPenetrationA = std::numeric_limits<float>::max();
+		float minPenetrationB = std::numeric_limits<float>::max();
+
+		glm::vec2 bestSeparatingAxisA = glm::vec2(0.0f);
+		glm::vec2 bestSeparatingAxisB = glm::vec2(0.0f);
+
+		std::size_t numberOfVerticesA = polygonVerticesA.size();
+		std::size_t numberOfVerticesB = polygonVerticesB.size();
+
 		static float faceSwitchTolerance = 1e-4;
 
 		//Separating Axis Theorem for detecting collisions between polygons
 		//First start for points on polygon A
-		for (uint32_t pointIndex = 0; pointIndex < numberOfPointsInPolygonA; pointIndex++)
+		for (uint8_t pointIndex = 0; pointIndex < numberOfVerticesA; pointIndex++)
 		{
 			//Find normal of edge between current and previous point
-			const glm::vec2& currentPoint = polygonPointsA[pointIndex];
-			const glm::vec2& nextPoint = polygonPointsA[(pointIndex + 1)%numberOfPointsInPolygonA];
+			const glm::vec2& currentPoint = polygonVerticesA[pointIndex];
+			const glm::vec2& nextPoint = polygonVerticesA[(pointIndex + 1)%numberOfVerticesA];
 			const glm::vec2 edge = nextPoint - currentPoint;
 
 			glm::vec2 normalSeparatingAxis = glm::vec2(-edge.y, edge.x);
@@ -114,8 +172,8 @@ namespace Core::Physics::ShapeOverlapFunctions
 			//Using the normal as the new axis, project all edges of both polygons onto that axis and find their
 			//max and min projections
 			float maxAOnAxis = 0.0f, minAOnAxis = 0.0f, maxBOnAxis = 0.0f, minBOnAxis = 0.0f;
-			ProjectPointsOnAxis(polygonPointsA, normalSeparatingAxis, maxAOnAxis, minAOnAxis);
-			ProjectPointsOnAxis(polygonPointsB, normalSeparatingAxis, maxBOnAxis, minBOnAxis);
+			ProjectPointsOnAxis(polygonVerticesA, normalSeparatingAxis, maxAOnAxis, minAOnAxis);
+			ProjectPointsOnAxis(polygonVerticesB, normalSeparatingAxis, maxBOnAxis, minBOnAxis);
 
 			//Using max and min projections, if a gap is found, return false
 			if (minAOnAxis > maxBOnAxis || maxAOnAxis < minBOnAxis)
@@ -123,22 +181,21 @@ namespace Core::Physics::ShapeOverlapFunctions
 				return false;
 			}
 
-			//Find the magnitude of separation
-			float axisDepth = std::min(maxAOnAxis, maxBOnAxis) - std::max(minAOnAxis, minBOnAxis);
-			if (axisDepth < bestSeparationA)
+			//Find min penetration
+			float penetrationOnCurrentAxis = std::min(maxAOnAxis, maxBOnAxis) - std::max(minAOnAxis, minBOnAxis);
+			if (penetrationOnCurrentAxis < minPenetrationA)
 			{
-				bestSeparationA = axisDepth;
-				bestAxisA = normalSeparatingAxis;
-				bestIndexA = pointIndex;
+				minPenetrationA = penetrationOnCurrentAxis;
+				bestSeparatingAxisA = normalSeparatingAxis;
 			}
 		}
 
 		//Repeat for points on B
-		for (uint32_t pointIndex = 0; pointIndex < numberOfPointsInPolygonB; pointIndex++)
+		for (uint8_t pointIndex = 0; pointIndex < numberOfVerticesB; pointIndex++)
 		{
 			//Find normal of edge between current and previous point
-			const glm::vec2& currentPoint = polygonPointsB[pointIndex];
-			const glm::vec2& nextPoint = polygonPointsB[(pointIndex + 1)%numberOfPointsInPolygonB];
+			const glm::vec2& currentPoint = polygonVerticesB[pointIndex];
+			const glm::vec2& nextPoint = polygonVerticesB[(pointIndex + 1)%numberOfVerticesB];
 			const glm::vec2 edge = nextPoint - currentPoint;
 			glm::vec2 normalSeparatingAxis = glm::vec2(-edge.y, edge.x);
 			normalSeparatingAxis = glm::normalize(normalSeparatingAxis);
@@ -146,8 +203,8 @@ namespace Core::Physics::ShapeOverlapFunctions
 			//Using the normal as the new axis, project all edges of both polygons onto that axis and find their
 			//max and min projections
 			float maxAOnAxis = 0.0f, minAOnAxis = 0.0f, maxBOnAxis = 0.0f, minBOnAxis = 0.0f;
-			ProjectPointsOnAxis(polygonPointsA, normalSeparatingAxis, maxAOnAxis, minAOnAxis);
-			ProjectPointsOnAxis(polygonPointsB, normalSeparatingAxis, maxBOnAxis, minBOnAxis);
+			ProjectPointsOnAxis(polygonVerticesA, normalSeparatingAxis, maxAOnAxis, minAOnAxis);
+			ProjectPointsOnAxis(polygonVerticesB, normalSeparatingAxis, maxBOnAxis, minBOnAxis);
 
 			//Using max and min projections, if a gap is found, return false
 			if (minAOnAxis > maxBOnAxis || maxAOnAxis < minBOnAxis)
@@ -155,40 +212,26 @@ namespace Core::Physics::ShapeOverlapFunctions
 				return false;
 			}
 
-			//Find the magnitude of separation
-			float axisDepth = std::min(maxAOnAxis, maxBOnAxis) - std::max(minAOnAxis, minBOnAxis);
-			if (axisDepth < bestSeparationB)
+			//Find min penetration
+			float penetrationOnCurrentAxis = std::min(maxAOnAxis, maxBOnAxis) - std::max(minAOnAxis, minBOnAxis);
+			if (penetrationOnCurrentAxis < minPenetrationB)
 			{
-				bestSeparationB = axisDepth;
-				bestAxisB = normalSeparatingAxis;
-				bestIndexB = pointIndex;
+				minPenetrationB = penetrationOnCurrentAxis;
+				bestSeparatingAxisB = normalSeparatingAxis;
 			}
 		}
 
-		//Pick the reference edge for contact point generation - the one with the larger separation along normal
-		//is considered the reference edge because it's the shallowest penetration direction.
-		//Shallower penetrations result in more stable contact points since it:
-		//1. Minimizes numerical errors in contact point calculation
-		//2. Provides consistent incident and reference edge selection per frame.
-
-		if (bestSeparationA < bestSeparationB - faceSwitchTolerance)
+		//find contact normal and min penetration
+		if (minPenetrationA < minPenetrationB)
 		{
-			penetrationDepth = bestSeparationA;
-			referenceEdgeIndex = bestIndexA;
-			referenceEdge = polygonPointsA[(bestIndexA + 1) % numberOfPointsInPolygonA] - polygonPointsA[bestIndexA];
-			aHasReferenceEdge = true;
-			contactNormal = bestAxisA;
+			penetrationDepth = minPenetrationA;
+			contactNormal = bestSeparatingAxisA;
 		}
 		else
 		{
-			penetrationDepth = bestSeparationB;
-			referenceEdgeIndex = bestIndexB;
-			referenceEdge = polygonPointsB[(bestIndexB + 1) % numberOfPointsInPolygonB] - polygonPointsB[bestIndexB];
-			aHasReferenceEdge = false;
-			contactNormal = bestAxisB;
+			penetrationDepth = minPenetrationB;
+			contactNormal = bestSeparatingAxisB;
 		}
-
-		contactNormal = glm::normalize(contactNormal);
 
 DoDebugCode(
 		glm::vec2 centerScreenA = Core::ScreenHelperFunctions::WorldToScreen(polygonCenterA);
@@ -263,7 +306,7 @@ DoDebugCode(
 		float minDistance = std::numeric_limits<float>::max();
 
 		//Now to check for collision from the circle's end, first find the point on the polygon that is closest to the circle.
-		for (pointIndex = 0; pointIndex < numberOfPointsInPolygon; pointIndex++)
+		for (pointIndex = 0; pointIndex < numberOfPointsInPolygon; ++pointIndex)
 		{
 			const glm::vec2& point = polygonPoints[pointIndex];
 			float pointDistance = glm::distance(point, circleCenter);
@@ -272,7 +315,6 @@ DoDebugCode(
 				minDistance = pointDistance;
 				closestPolygonVertexIndex = pointIndex;
 			}
-			++pointIndex;
 		}
 
 		//Then, the vector from the center to the closest point becomes the separating axis

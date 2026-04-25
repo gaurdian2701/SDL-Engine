@@ -49,7 +49,6 @@ namespace Components
     private:
         glm::vec2 up = glm::vec2(0.0f);
         glm::vec2 right = glm::vec2(0.0f);
-
         bool rotationDirtyByte = false;
     };
 }

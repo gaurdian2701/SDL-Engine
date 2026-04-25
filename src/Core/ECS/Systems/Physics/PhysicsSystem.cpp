@@ -21,33 +21,40 @@ void Core::ECS::Systems::PhysicsSystem::RegisterInterestedComponents()
 	DoDebugStatement(m_shouldRunOnlyWhilePlaying = true);
 }
 
+void Core::ECS::Systems::PhysicsSystem::OnComponentAdded(const std::uint32_t entityID)
+{
+	auto transform = ECSManager::GetInstance().GetComponent<Components::Transform>(entityID);
+	auto rigidbody = ECSManager::GetInstance().GetComponent<Components::Rigidbody2D>(entityID);
+
+	if (auto circle = ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(entityID))
+	{
+		circle->SetPosition(transform->Position);
+		circle->IsColliding = false;
+
+		if (circle->MatchScaleWithTransform)
+		{
+			circle->SetRadius(glm::length(transform->Scale) * 0.5f);
+		}
+
+		rigidbody->SetMomentOfInertia(circle->CalculateMomentOfInertia(rigidbody->GetMass()));
+	}
+	else if (auto polygon = ECSManager::GetInstance().GetComponent<Components::PolygonCollider2D>(entityID))
+	{
+		polygon->UpdatePositionAndRotation(transform->Position, transform->Rotation);
+		polygon->IsColliding = false;
+
+		if (polygon->MatchScaleWithTransform)
+		{
+			polygon->SetBoxHalfExtents(transform->Scale * 0.5f);
+		}
+
+		rigidbody->SetMomentOfInertia(polygon->CalculateMomentOfInertia(rigidbody->GetMass()));
+	}
+}
+
 void Core::ECS::Systems::PhysicsSystem::BeginSystem()
 {
 	m_broadPhase = new Physics::NaiveBroadPhase();
-
-	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::CircleCollider2D>(
-	[&](const Components::Transform *transform, Components::CircleCollider2D *circleCollider)
-	{
-		circleCollider->SetPosition(transform->Position);
-		circleCollider->IsColliding = false;
-
-		if (circleCollider->MatchScaleWithTransform)
-		{
-			circleCollider->SetRadius(glm::length(transform->Scale) * 0.5f);
-		}
-	});
-
-	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::PolygonCollider2D>(
-		[&](const Components::Transform *transform, Components::PolygonCollider2D *polygon)
-		{
-			polygon->UpdatePositionAndRotation(transform->Position, transform->Rotation);
-			polygon->IsColliding = false;
-
-			if (polygon->MatchScaleWithTransform)
-			{
-				polygon->SetBoxHalfExtents(transform->Scale * 0.5f);
-			}
-		});
 }
 
 void Core::ECS::Systems::PhysicsSystem::UpdateSystem(const float deltaTime)
@@ -56,13 +63,15 @@ void Core::ECS::Systems::PhysicsSystem::UpdateSystem(const float deltaTime)
 
 	while (accumulator >= m_timeStep)
 	{
+		//Update positions and colliders before physics step
 		IntegrateVelocities(m_timeStep);
 		IntegratePositions(m_timeStep);
-		UpdateColliders();
+		UpdateCollidersAndRigidbodies();
 
 		m_broadPhase->GeneratePairs(m_collisionPairs);
 		m_narrowPhase.GenerateManifolds(m_collisionPairs, m_collisionManifolds);
 		m_solver.Solve(m_collisionManifolds, m_timeStep);
+
 		m_collisionManifolds.clear();
 		accumulator -= m_timeStep;
 	}
@@ -89,19 +98,31 @@ void Core::ECS::Systems::PhysicsSystem::IntegratePositions(const float physicsTi
 	});
 }
 
-void Core::ECS::Systems::PhysicsSystem::UpdateColliders()
+void Core::ECS::Systems::PhysicsSystem::UpdateCollidersAndRigidbodies()
 {
-	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::CircleCollider2D>(
-		[&](const Components::Transform *transform, Components::CircleCollider2D *circleCollider)
+	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::CircleCollider2D, Components::Rigidbody2D>(
+		[&](const Components::Transform *transform, Components::CircleCollider2D *circleCollider,
+			Components::Rigidbody2D* rigidbody)
 		{
 			circleCollider->SetPosition(transform->Position);
 			circleCollider->IsColliding = false;
+			if (rigidbody->massDirtyByte)
+			{
+				rigidbody->SetMomentOfInertia(circleCollider->CalculateMomentOfInertia(rigidbody->GetMass()));
+				rigidbody->massDirtyByte = false;
+			}
 		});
 
-	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::PolygonCollider2D>(
-		[&](const Components::Transform *transform, Components::PolygonCollider2D *polygon)
+	ECSManager::GetInstance().ForEachUsingComponents<Components::Transform, Components::PolygonCollider2D, Components::Rigidbody2D>(
+		[&](const Components::Transform *transform, Components::PolygonCollider2D *polygon,
+			Components::Rigidbody2D* rigidbody)
 		{
 			polygon->UpdatePositionAndRotation(transform->Position, transform->Rotation);
 			polygon->IsColliding = false;
+			if (rigidbody->massDirtyByte)
+			{
+				rigidbody->SetMomentOfInertia(polygon->CalculateMomentOfInertia(rigidbody->GetMass()));
+				rigidbody->massDirtyByte = false;
+			}
 		});
 }

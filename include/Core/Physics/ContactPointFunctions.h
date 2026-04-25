@@ -4,8 +4,8 @@
 
 namespace Core::Physics
 {
-    static std::uint8_t ClipLineSegmentToPoint(const glm::vec2& p1,
-        const glm::vec2& p2,
+    static std::uint8_t ClipLineSegmentToPoint(const glm::vec2 p1,
+        const glm::vec2 p2,
         const glm::vec2& normal,
         const glm::vec2& offset,
         std::vector<glm::vec2>& clippedPoints)
@@ -32,6 +32,7 @@ namespace Core::Physics
             float percentageAcrossLineSegment = distance2 / (distance2 - distance1);
             glm::vec2 intersectionPoint = p2 + (p1 - p2) * percentageAcrossLineSegment;
             clippedPoints[contactPointIndex] = intersectionPoint;
+            ++contactPointIndex;
         }
 
         return contactPointIndex;
@@ -42,18 +43,20 @@ namespace Core::Physics
         const Components::PolygonCollider2D& polygonB,
         const bool aHasReferenceEdge,
         const glm::vec2& referenceEdge,
-        const glm::vec2& referenceEdgeNormal,
+        const glm::vec2& contactNormal,
         const std::size_t& referenceEdgeIndex,
-        std::vector<glm::vec2>& contactPoints)
+        std::vector<glm::vec2>& contactPoints,
+        uint8_t& numberOfContactPoints)
     {
         float lowestDotProduct = std::numeric_limits<float>::max();
 
-        const auto& referencePolygonPoints = aHasReferenceEdge ? polygonA.GetPoints() : polygonB.GetPoints();
-        const auto& incidentPolygonPoints = aHasReferenceEdge ? polygonB.GetPoints() : polygonA.GetPoints();
+        const auto& referencePolygonPoints = aHasReferenceEdge ? polygonA.GetVertices() : polygonB.GetVertices();
+        const auto& incidentPolygonPoints = aHasReferenceEdge ? polygonB.GetVertices() : polygonA.GetVertices();
 
         std::size_t numberOfPointsInIncidentPolygon = incidentPolygonPoints.size();
         std::size_t numberOfPointsInReferencePolygon = referencePolygonPoints.size();
         glm::vec2 referenceEdgeTangent = glm::normalize(referenceEdge);
+        glm::vec2 referenceEdgeNormal = glm::vec2(-referenceEdgeTangent.y, referenceEdgeTangent.x);
         glm::vec2 referenceEdgePointA = referencePolygonPoints[referenceEdgeIndex];
         glm::vec2 referenceEdgePointB = referencePolygonPoints[(referenceEdgeIndex + 1) % numberOfPointsInReferencePolygon];
         float referenceEdgeLength = glm::length(referenceEdge);
@@ -67,6 +70,7 @@ namespace Core::Physics
                 incidentPolygonPoints[pointIndex];
 
             glm::vec2 currentNormal = glm::vec2(-currentEdge.y, currentEdge.x);
+            currentNormal = glm::normalize(currentNormal);
             float currentDotProduct = glm::dot(currentNormal, referenceEdgeNormal);
 
             if ( currentDotProduct < lowestDotProduct)
@@ -88,7 +92,7 @@ namespace Core::Physics
         float maxProjection = std::max(projectionA, projectionB);
 
         //If our incident edge is out of the bounds of the reference edge, cancel out early.
-        if (maxProjection < 0 || minProjection > referenceEdgeLength)
+        if (maxProjection < 0.0f|| minProjection > referenceEdgeLength)
         {
             return;
         }
@@ -100,24 +104,38 @@ namespace Core::Physics
         }
 
         //Start with reference edge point A, cancel early if we do not find any contact points
-        if (!ClipLineSegmentToPoint(incidentEdgePointA,
+        numberOfContactPoints = ClipLineSegmentToPoint(incidentEdgePointA,
             incidentEdgePointB,
             -referenceEdgeTangent,
             referenceEdgePointA,
-            contactPoints))
+            contactPoints);
+
+        if (numberOfContactPoints == 0)
         {
             return;
         }
 
         //Then with reference edge point B
-        ClipLineSegmentToPoint(contactPoints[0],
-            contactPoints[1],
-            referenceEdgeTangent,
-            referenceEdgePointB,
-            contactPoints);
+        numberOfContactPoints = ClipLineSegmentToPoint(contactPoints[0],
+        contactPoints[1],
+        referenceEdgeTangent,
+        referenceEdgePointB,
+        contactPoints);
+
+        //Finally, keep points that are behind/passed through the reference face, use slop
+        uint8_t newCount = 0;
+
+        for (uint8_t i = 0; i < numberOfContactPoints; i++)
+        {
+            float separation = glm::dot(contactPoints[i] - referenceEdgePointA, referenceEdgeNormal);
+
+            if (separation <= 0.0f)
+            {
+                contactPoints[newCount++] = contactPoints[i];
+            }
+        }
+        numberOfContactPoints = newCount;
     }
-
-
 
     static void FindCircleVsCircleContactPoint(const Components::CircleCollider2D& circleA,
         const Components::CircleCollider2D& circleB,
@@ -132,10 +150,9 @@ namespace Core::Physics
         glm::vec2& contactPoint,
         std::uint32_t closestVertexIndex)
     {
-        auto& polygonPoints = polygon.GetPoints();
-        std::size_t numberOfPointsInPolygon = polygon.GetPoints().size();
+        auto& polygonPoints = polygon.GetVertices();
+        std::size_t numberOfPointsInPolygon = polygon.GetVertices().size();
         const glm::vec2& circleCenter = circle.GetCenter();
-        float circleRadius = circle.GetRadius();
 
         //Compute the closest edge to circle -
         //We would compare the two closest edges from the closest vertex B, i.e. edges AB and BC
