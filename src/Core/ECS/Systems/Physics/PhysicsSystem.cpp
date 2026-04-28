@@ -106,10 +106,10 @@ void Core::ECS::Systems::PhysicsSystem::UpdateCollidersAndRigidbodies()
 		{
 			circleCollider->SetPosition(transform->Position);
 			circleCollider->IsColliding = false;
-			if (rigidbody->massDirtyByte)
+			if (rigidbody->MassDirtyByte)
 			{
 				rigidbody->SetMomentOfInertia(circleCollider->CalculateMomentOfInertia(rigidbody->GetMass()));
-				rigidbody->massDirtyByte = false;
+				rigidbody->MassDirtyByte = false;
 			}
 		});
 
@@ -119,10 +119,10 @@ void Core::ECS::Systems::PhysicsSystem::UpdateCollidersAndRigidbodies()
 		{
 			polygon->UpdatePositionAndRotation(transform->Position, transform->Rotation);
 			polygon->IsColliding = false;
-			if (rigidbody->massDirtyByte)
+			if (rigidbody->MassDirtyByte)
 			{
 				rigidbody->SetMomentOfInertia(polygon->CalculateMomentOfInertia(rigidbody->GetMass()));
-				rigidbody->massDirtyByte = false;
+				rigidbody->MassDirtyByte = false;
 			}
 		});
 }

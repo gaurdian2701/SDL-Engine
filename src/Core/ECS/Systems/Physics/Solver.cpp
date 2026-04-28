@@ -29,7 +29,9 @@ void Core::Physics::Solver::Solve(std::vector<PhysicsData::ContactManifold> &man
 
 				const float positionalCorrectionPercentage = 0.2f;
 				const float slop = 0.01f;
+				static float normalImpulses[2] = {0.0f};
 
+				//Solve Normal Impulses
 				for (std::uint8_t index = 0; index < manifold.Contacts.NumberOfContactPoints; index++)
 				{
 					glm::vec2 aVecToContactPoint = manifold.Contacts.Points[index] - manifold.TransformA->Position;
@@ -64,17 +66,19 @@ void Core::Physics::Solver::Solve(std::vector<PhysicsData::ContactManifold> &man
 						restitutionConstant = 0.0f;
 					}
 
-					float impulseScalar = -(1 + restitutionConstant) * contactVelocityMagnitude;
-
 					float aVecToContactPerpDotNormal = glm::dot(aVecToContactPointPerp, manifold.ContactNormal);
 					float bVecToContactPerpDotNormal = glm::dot(bVecToContactPointPerp, manifold.ContactNormal);
+
+					float impulseScalar = -(1 + restitutionConstant) * contactVelocityMagnitude;
 
 					impulseScalar /= inverseMassA + inverseMassB +
 						(aVecToContactPerpDotNormal * aVecToContactPerpDotNormal) * inverseInertiaA +
 							(bVecToContactPerpDotNormal * bVecToContactPerpDotNormal) * inverseInertiaB;
+					impulseScalar /= manifold.Contacts.NumberOfContactPoints;
+
+					normalImpulses[index] = impulseScalar;
 
 					glm::vec2 finalImpulse = impulseScalar * manifold.ContactNormal;
-					finalImpulse /= manifold.Contacts.NumberOfContactPoints;
 
 					//Apply linear impulses
 					manifold.RigidbodyA->LinearVelocity -= finalImpulse * inverseMassA;
@@ -97,6 +101,73 @@ void Core::Physics::Solver::Solve(std::vector<PhysicsData::ContactManifold> &man
 
 					manifold.TransformA->Position -= manifold.RigidbodyA->GetInverseMass() * correction;
 					manifold.TransformB->Position += manifold.RigidbodyB->GetInverseMass() * correction;
+				}
+
+				float staticFriction = (manifold.RigidbodyA->StaticFriction + manifold.RigidbodyB->StaticFriction) * 0.5f;
+				float dynamicFriction = (manifold.RigidbodyA->DynamicFriction + manifold.RigidbodyB->DynamicFriction) * 0.5f;
+
+				//Solve Tangential/Frictional impulses
+				for (std::uint8_t index = 0; index < manifold.Contacts.NumberOfContactPoints; index++)
+				{
+					glm::vec2 aVecToContactPoint = manifold.Contacts.Points[index] - manifold.TransformA->Position;
+					glm::vec2 bVecToContactPoint = manifold.Contacts.Points[index] - manifold.TransformB->Position;
+
+					glm::vec2 aVecToContactPointPerp = glm::vec2(-aVecToContactPoint.y, aVecToContactPoint.x);
+					glm::vec2 bVecToContactPointPerp = glm::vec2(-bVecToContactPoint.y, bVecToContactPoint.x);
+
+					glm::vec2 angularVelocityA = aVecToContactPointPerp * manifold.RigidbodyA->AngularVelocity;
+					glm::vec2 angularVelocityB = bVecToContactPointPerp * manifold.RigidbodyB->AngularVelocity;
+
+					glm::vec2 relativeVelocity = (manifold.RigidbodyB->LinearVelocity + angularVelocityB) -
+												(manifold.RigidbodyA->LinearVelocity + angularVelocityA);
+
+					//Gives the tangent velocity in the direction of the relative velocity
+					glm::vec2 tangentVelocity =
+						relativeVelocity - glm::dot(relativeVelocity, manifold.ContactNormal) * manifold.ContactNormal;
+
+					if (glm::length(tangentVelocity) < 0.01f)
+					{
+						continue;
+					}
+
+					tangentVelocity = glm::normalize(tangentVelocity);
+
+					float aVecToContactPerpDotTangent = glm::dot(aVecToContactPointPerp, tangentVelocity);
+					float bVecToContactPerpDotTangent = glm::dot(bVecToContactPointPerp, tangentVelocity);
+
+					//This is the frictional impulse to be applied in the opposite direction of the relative velocity
+					float frictionalImpulseScalar = -glm::dot(relativeVelocity, tangentVelocity);
+
+					frictionalImpulseScalar /= inverseMassA + inverseMassB +
+						(aVecToContactPerpDotTangent * aVecToContactPerpDotTangent) * inverseInertiaA +
+							(bVecToContactPerpDotTangent * bVecToContactPerpDotTangent) * inverseInertiaB;
+					frictionalImpulseScalar /= manifold.Contacts.NumberOfContactPoints;
+
+					glm::vec2 finalFrictionalImpulse = glm::vec2(0.0f);
+					float normalImpulse = normalImpulses[index];
+
+					//Adjust frictional forces according to Coulomb's Law:
+					//If frictionalImpulse < normalImpulse * static friction, keep the original calculation,
+					//else scale it by dynamic friction in the opposite direction
+
+					if (std::abs(frictionalImpulseScalar) < normalImpulse * staticFriction)
+					{
+						finalFrictionalImpulse = frictionalImpulseScalar * tangentVelocity;
+					}
+					else
+					{
+						finalFrictionalImpulse = -normalImpulse * dynamicFriction * tangentVelocity;
+					}
+
+					//Apply linear impulses
+					manifold.RigidbodyA->LinearVelocity -= finalFrictionalImpulse * inverseMassA;
+					manifold.RigidbodyB->LinearVelocity += finalFrictionalImpulse * inverseMassB;
+
+					//Apply angular impulses
+					manifold.RigidbodyA->AngularVelocity -= MathHelpers::VectorCross(aVecToContactPoint, finalFrictionalImpulse) *
+						manifold.RigidbodyA->GetInverseMomentOfInertia();
+					manifold.RigidbodyB->AngularVelocity += MathHelpers::VectorCross(bVecToContactPoint, finalFrictionalImpulse) *
+						manifold.RigidbodyB->GetInverseMomentOfInertia();
 				}
 			}
 		}

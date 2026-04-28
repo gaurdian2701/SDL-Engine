@@ -14,7 +14,7 @@ namespace Components
             {
                 if (!isStatic && mass - someMass > 0.0f)
                 {
-                    massDirtyByte = true;
+                    MassDirtyByte = true;
                     mass = someMass;
                     inverseMass = 1.0f / someMass;
                 }
@@ -97,7 +97,9 @@ namespace Components
         glm::vec2 LinearAcceleration = glm::vec2(0.0f);
         float Restitution = 0.1f;
         float AngularVelocity = 0.0f;
-        bool massDirtyByte = true;
+        float StaticFriction = 0.6f;
+        float DynamicFriction = 0.3f;
+        bool MassDirtyByte = true;
 
     private:
         float mass = 1.0f;
