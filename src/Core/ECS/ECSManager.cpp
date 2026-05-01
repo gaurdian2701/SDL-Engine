@@ -29,7 +29,7 @@ void Core::ECS::ECSManager::CreateSystems()
 	Systems::PhysicsSystem::m_instance = static_cast<Systems::PhysicsSystem*>(m_systemsList.back());
 
 	m_systemsList.push_back(new Systems::ParticleSystem());
-	DoDebugCode(m_systemsList.push_back(new Systems::DebugDrawSystem()););
+	DoDebug(m_systemsList.push_back(new Systems::DebugDrawSystem()););
 	m_systemsList.push_back(new Systems::RenderingSystem());
 }
 
@@ -57,7 +57,7 @@ void Core::ECS::ECSManager::UpdateManager(const float deltaTime)
 	}
 }
 
-DoDebugStatement(
+DoDebug(
 void Core::ECS::ECSManager::DebugUpdateManager(const float deltaTime, bool scenePaused)
 {
 	for (auto& system : m_systemsList)

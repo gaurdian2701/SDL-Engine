@@ -47,7 +47,7 @@ void Core::Physics::NarrowPhase::DoCircleVsCircle(const Core::Physics::PhysicsDa
 			contactPoints.NumberOfContactPoints = 1;
 			FindCircleVsCircleContactPoint(*circleA, *circleB, contactPoints.Points[0]);
 
-			DoDebugCode(
+			DoDebug(
 				ECS::Systems::DebugDrawSystem* debugSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::DebugDrawSystem>();
 				debugSystem->DrawHollowCircle(contactPoints.Points[0], 10.0f, 255, 240, 0, 255);
 				);
@@ -97,7 +97,7 @@ void Core::Physics::NarrowPhase::DoPolygonVsCircle(const Core::Physics::PhysicsD
 			contactPoints.Points[0],
 			closestPolygonVertexIndex);
 
-		DoDebugCode(
+		DoDebug(
 		ECS::Systems::DebugDrawSystem* debugSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::DebugDrawSystem>();
 		debugSystem->DrawHollowCircle(contactPoints.Points[0], 10.0f, 255, 240, 0, 255);
 		);
@@ -159,7 +159,7 @@ void Core::Physics::NarrowPhase::DoPolygonVsPolygon(const Core::Physics::Physics
 			contactPoints.Points,
 			contactPoints.NumberOfContactPoints);
 
-		DoDebugCode(
+		DoDebug(
 		ECS::Systems::DebugDrawSystem* debugSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::DebugDrawSystem>();
 		if (contactPoints.NumberOfContactPoints > 0)
 		{

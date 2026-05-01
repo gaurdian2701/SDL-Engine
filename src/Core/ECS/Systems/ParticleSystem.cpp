@@ -10,12 +10,6 @@ void Core::ECS::Systems::ParticleSystem::RegisterInterestedComponents()
 		Components::ParticleEmitter>(this);
 }
 
-void Core::ECS::Systems::ParticleSystem::BeginSystem()
-{
-	m_maxCartesianLimits = ScreenHelperFunctions::GetMaxCartesianLimits();
-	m_minCartesianLimits = ScreenHelperFunctions::GetMinCartesianLimits();
-}
-
 void Core::ECS::Systems::ParticleSystem::OnComponentAdded(const std::uint32_t entityID)
 {
 	auto transform = ECSManager::GetInstance().GetComponent<Components::Transform>(entityID);

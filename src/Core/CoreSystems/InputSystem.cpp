@@ -44,7 +44,7 @@ void Core::Input::InputSystem::ProcessEvents()
             Application::GetCoreInstance().StopRunning();
         }
 
-        DoDebugCode(
+        DoDebug(
         ImGui_ImplSDL3_ProcessEvent(&event);
         );
 

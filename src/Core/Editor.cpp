@@ -103,14 +103,6 @@ void Core::Editor::Update(const float deltaTime)
                 ImGui::DragFloat2("Scale", &transform->Scale.x, 0.5f, -100.0f, 100.0f);
                 ImGui::DragFloat("Rotation", &transform->Rotation, 0.5f, -100.0f, 100.0f);
 
-                if (auto polygonCollider = gameObject->GetComponent<Components::PolygonCollider2D>())
-                {
-                    if (polygonCollider->MatchScaleWithTransform)
-                    {
-                        polygonCollider->SetBoxHalfExtents(transform->Scale * 0.5f);
-                    }
-                }
-
                 if (auto circleCollider = gameObject->GetComponent<Components::CircleCollider2D>())
                 {
                     if (circleCollider->MatchScaleWithTransform)

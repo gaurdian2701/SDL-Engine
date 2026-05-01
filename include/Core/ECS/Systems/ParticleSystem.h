@@ -18,7 +18,6 @@ namespace Core::ECS::Systems
 		~ParticleSystem() override = default;
 
 		void RegisterInterestedComponents() override;
-		void BeginSystem() override;
 		void OnComponentAdded(const std::uint32_t entityID) override;
 		void UpdateSystem(const float deltaTime) override;
 		void EndSystem() override{}
@@ -29,7 +28,5 @@ namespace Core::ECS::Systems
 
 	private:
 		std::default_random_engine m_randomOffsetGenerator;
-		glm::vec2 m_minCartesianLimits = glm::vec2(0.0f, 0.0f);
-		glm::vec2 m_maxCartesianLimits = glm::vec2(0.0f, 0.0f);
 	};
 }

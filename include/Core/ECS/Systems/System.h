@@ -23,7 +23,7 @@ namespace Core::ECS
 		virtual void CleanupSystem(){}
 
 	protected:
-		DoDebugStatement(bool m_shouldRunOnlyWhilePlaying = false);
+		DoDebug(bool m_shouldRunOnlyWhilePlaying = false);
 		std::bitset<MAX_COMPONENT_TYPES> m_systemBitSet = std::bitset<MAX_COMPONENT_TYPES>();
 		friend class ECSManager;
 	};

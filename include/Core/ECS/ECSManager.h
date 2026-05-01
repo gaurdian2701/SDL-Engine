@@ -32,7 +32,7 @@ namespace Core::ECS
 		void BeginSystems();
 
 		void UpdateManager(const float deltaTime);
-DoDebugStatement(
+DoDebug(
 		void DebugUpdateManager(const float deltaTime, bool scenePaused);
 );
 		void CleanupManager();

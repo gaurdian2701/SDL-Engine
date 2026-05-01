@@ -53,7 +53,7 @@ namespace Scene
         }
 
     public:
-        DoDebugStatement(std::string m_name = "GameObject");
+        DoDebug(std::string m_name = "GameObject");
         bool m_isActive = true;
 
     private:

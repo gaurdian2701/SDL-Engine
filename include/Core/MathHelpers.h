@@ -1,9 +1,9 @@
 ﻿#pragma once
 #include <cmath>
 #include "vec2.hpp"
-#include "ext/quaternion_geometric.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
 #include "gtx/norm.hpp"
+#include "numbers"
 
 namespace Core::MathHelpers
 {
@@ -70,5 +70,20 @@ namespace Core::MathHelpers
 	static glm::vec2 ScalarCross(const glm::vec2& a, float s)
 	{
 		return glm::vec2(-s * a.y, s * a.x);
+	}
+
+	static void GeneratePolygonPointsAroundCircle(
+		const glm::vec2& center,
+		const float radius,
+		std::vector<glm::vec2>& points,
+		int numberOfPoints)
+	{
+		for (uint8_t i = 0; i < numberOfPoints; i++)
+		{
+			float radians = 2 * std::numbers::pi * i / numberOfPoints;
+			float x = center.x + radius * std::cos(radians);
+			float y = center.y + radius * std::sin(radians);
+			points[i] = glm::vec2(x, y);
+		}
 	}
 }

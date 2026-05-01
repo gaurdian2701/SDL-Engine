@@ -122,7 +122,5 @@ namespace Core
         std::unordered_map<std::type_index, std::vector<Scene::GameObject*>> m_entityToGameObjectMap;
         CoreSystems::ResourceManager* m_resourceManager = nullptr;
         uint32_t m_maxEntityCount = 0;
-        glm::vec2 m_minCartesianLimits = glm::vec2(0.0f);
-        glm::vec2 m_maxCartesianLimits = glm::vec2(0.0f);
     };
 }

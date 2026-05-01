@@ -16,13 +16,11 @@
 
 Core::GameScene::GameScene(const std::uint32_t maxEntitiesInScene)
 {
-	ECS::ECSManager::GetInstance().InitializeManager(300);
+	ECS::ECSManager::GetInstance().InitializeManager(1000);
 	m_resourceManager = new CoreSystems::ResourceManager();
 	RegisterComponents();
 
 	m_gameObjectsInScene.reserve(maxEntitiesInScene);
-	m_minCartesianLimits = ScreenHelperFunctions::GetMinCartesianLimits();
-	m_maxCartesianLimits = ScreenHelperFunctions::GetMaxCartesianLimits();
 	m_maxEntityCount = maxEntitiesInScene;
 }
 

@@ -18,7 +18,7 @@ void Core::ECS::Systems::PhysicsSystem::RegisterInterestedComponents()
 	ECSManager::GetInstance().RegisterInterestedComponentsForSystem
 			<Components::Transform, Components::Rigidbody2D>(this);
 
-	DoDebugStatement(m_shouldRunOnlyWhilePlaying = true);
+	DoDebug(m_shouldRunOnlyWhilePlaying = true);
 }
 
 void Core::ECS::Systems::PhysicsSystem::OnComponentAdded(const std::uint32_t entityID)

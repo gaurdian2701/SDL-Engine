@@ -60,7 +60,7 @@ void Core::ECS::Systems::RenderingSystem::UpdateSystem(const float deltaTime)
 	});
 
 	//Render Debugs
-	DoDebugStatement(m_debugDrawSystem->DrawFromDebugDrawList());
+	DoDebug(m_debugDrawSystem->DrawFromDebugDrawList());
 }
 
 void Core::ECS::Systems::RenderingSystem::EndSystem()

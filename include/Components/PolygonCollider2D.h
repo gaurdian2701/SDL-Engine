@@ -29,7 +29,26 @@ namespace Components
 			return points;
 		}
 
-		void InitializeBox(const glm::vec2 &someCenter,
+		void InitializePolygon(const glm::vec2& someCenter,
+			int numberOfVertices,
+			float someScale,
+			float someRotationInRadians)
+		{
+			center = someCenter;
+			rotation = someRotationInRadians;
+			points = std::vector<glm::vec2>(numberOfVertices);
+
+			Core::MathHelpers::GeneratePolygonPointsAroundCircle(
+				center,
+				someScale,
+				points,
+				numberOfVertices);
+
+			RotateBounds(rotation);
+			UpdateAABB();
+		}
+
+		void InitializeBox(const glm::vec2& someCenter,
 			const glm::vec2&& someHalfExtents,
 			float someRotationInRadians)
 		{
@@ -108,6 +127,14 @@ namespace Components
 			mmoi -= mass * glm::dot(center, center);
 
 			return mmoi;
+		}
+
+		void ScaleBounds(float someScale)
+		{
+			for (auto& point: points)
+			{
+				point *= someScale;
+			}
 		}
 
 	private:

@@ -19,8 +19,12 @@ class Window;
 class Application
 {
 public:
-	Application();
-	virtual ~Application();
+	Application() = default;
+	virtual ~Application()
+	{
+		m_mainWindow = nullptr;
+	}
+
 	Application(const Application& other) = delete;
 	virtual void BeginApplication() = 0;
 	virtual void UpdateApplication(const float deltaTime) = 0;
@@ -31,11 +35,19 @@ public:
 	static Scene::SceneManager& GetSceneManager();
 	float GetDeltaTime() const;
 
-	void Init();
+	virtual void Init();
 	void Run();
 
 	[[nodiscard]] SDL_Window* GetMainWindow() const;
 	[[nodiscard]] SDL_Renderer* GetMainRenderer() const;
+	[[nodiscard]] int GetScreenWidth() const
+	{
+		return m_screenWidth;
+	}
+	[[nodiscard]] int GetScreenHeight() const
+	{
+		return m_screenHeight;
+	}
 
 	void SetBackgroundColor(const SDL_Color someColor)
 	{
@@ -44,23 +56,29 @@ public:
 
 	SDL_Color GetBackgroundColor() const{ return m_backgroundColor; }
 
+protected:
+	virtual void StartWindow();
+	virtual void StartTTF();
+	DoDebug(virtual void StartImGuiDebug());
+
 private:
 	void InitiateShutdown();
 	void RefreshBackground();
 	void UpdateCoreSystems();
 
-	DoDebugStatement(void StartNewImGUIFrame());
-	DoDebugStatement(void PresentImGuiFrame());
+	DoDebug(void StartNewImGuiFrame());
+	DoDebug(void PresentImGuiFrame());
 
 public:
-	static const int SCREEN_WIDTH = 1000;
-	static const int SCREEN_HEIGHT = 800;
+	int m_screenWidth = 1920;
+	int m_screenHeight = 1080;
 
 protected:
 	SDL_Window* m_mainWindow = nullptr;
 	SDL_Renderer* m_mainRenderer = nullptr;
+	const char *m_projectName = "SDL-Project";
 
-	DoDebugStatement(Core::Editor* m_editor = nullptr);
+	DoDebug(Core::Editor* m_editor = nullptr);
 
 	bool m_isRunning = true;
 

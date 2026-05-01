@@ -212,7 +212,7 @@ namespace Core::Physics::ShapeOverlapFunctions
 			contactNormal = bestSeparatingAxisB;
 		}
 
-DoDebugCode(
+DoDebug(
 		glm::vec2 centerScreenA = Core::ScreenHelperFunctions::WorldToScreen(polygonCenterA);
 		glm::vec2 centerScreenB = Core::ScreenHelperFunctions::WorldToScreen(polygonCenterB);
 		glm::vec2 screenAEnd = Core::ScreenHelperFunctions::WorldToScreen(
@@ -342,7 +342,7 @@ DoDebugCode(
 			contactNormal = separatingAxis;
 		}
 
-DoDebugCode(
+DoDebug(
 		glm::vec2 polygonCenterInScreenCoords = Core::ScreenHelperFunctions::WorldToScreen(polygonCenter);
 		glm::vec2 polygonEndPointInScreenCoords = Core::ScreenHelperFunctions::WorldToScreen(
 			polygonCenter + minSeparationDepth * glm::normalize(contactNormal));
