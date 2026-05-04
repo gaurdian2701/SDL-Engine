@@ -1,10 +1,11 @@
-﻿#include "../../../../../include/Core/ECS/Systems/PhysicsSystem.h"
+﻿#include "../../../../include/Core/ECS/Systems/PhysicsSystem.h"
 #include "Components/CircleCollider2D.h"
 #include "Components/PolygonCollider2D.h"
 #include "Components/Rigidbody2D.h"
 #include "Components/Transform.h"
 #include "Core/ECS/ECSManager.h"
-#include "../../../../../include/Core/Physics/NarrowPhase.h"
+#include "../../../../include/Core/Physics/NarrowPhase.h"
+#include "Core/Physics/AABBTreeBroadPhase.h"
 
 Core::ECS::Systems::PhysicsSystem* Core::ECS::Systems::PhysicsSystem::m_instance = nullptr;
 
@@ -54,7 +55,9 @@ void Core::ECS::Systems::PhysicsSystem::OnComponentAdded(const std::uint32_t ent
 
 void Core::ECS::Systems::PhysicsSystem::BeginSystem()
 {
-	m_broadPhase = new Physics::NaiveBroadPhase();
+	m_broadPhase = new Physics::AABBTreeBroadPhase();
+	m_collisionPairs.reserve(ECSManager::GetInstance().GetMaxEntityCount());
+	m_collisionManifolds.reserve(ECSManager::GetInstance().GetMaxEntityCount());
 }
 
 void Core::ECS::Systems::PhysicsSystem::UpdateSystem(const float deltaTime)
@@ -72,7 +75,6 @@ void Core::ECS::Systems::PhysicsSystem::UpdateSystem(const float deltaTime)
 		m_narrowPhase.GenerateManifolds(m_collisionPairs, m_collisionManifolds);
 		m_solver.Solve(m_collisionManifolds, m_timeStep);
 
-		m_collisionManifolds.clear();
 		accumulator -= m_timeStep;
 	}
 }

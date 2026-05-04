@@ -7,7 +7,11 @@ namespace Components
 {
 	struct CircleCollider2D
 	{
-		CircleCollider2D() = default;
+		CircleCollider2D()
+		{
+			aabb.Collider = ColliderType::CIRCLE;
+		}
+
 		~CircleCollider2D() = default;
 
 		void Initialize(const glm::vec2& someCenter, float someRadius)
@@ -38,7 +42,7 @@ namespace Components
 			}
 		}
 
-		const AABB& GetAABB() const
+		AABB& GetAABB()
 		{
 			return aabb;
 		}
@@ -62,8 +66,8 @@ namespace Components
 	private:
 		void UpdateAABB()
 		{
-			aabb.MinPoint = center - radius;
-			aabb.MaxPoint = center + radius;
+			aabb.BottomLeft = center - radius;
+			aabb.TopRight = center + radius;
 		}
 
 	public:

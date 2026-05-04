@@ -1,9 +1,9 @@
-﻿#include "../../../../../include/Core/ECS/Systems/DebugDrawSystem.h"
+﻿#include "../../../../include/Core/ECS/Systems/DebugDrawSystem.h"
 #include "Components/PolygonCollider2D.h"
 #include "Components/CircleCollider2D.h"
 #include "Components/Transform.h"
 #include "Core/ECS/ECSManager.h"
-#include "../../../../../include/Core/Debug/DebugDrawHelpers.h"
+#include "../../../../include/Core/Debug/DebugDrawHelpers.h"
 
 void Core::ECS::Systems::DebugDrawSystem::RegisterInterestedComponents()
 {
@@ -19,6 +19,18 @@ void Core::ECS::Systems::DebugDrawSystem::DrawFromDebugDrawList()
         switch (drawData.shapeType)
         {
             default:
+            case ShapeType::LINE:
+            {
+                const auto& renderer = Application::GetCoreInstance().GetMainRenderer();
+
+                SDL_SetRenderDrawColor(renderer, drawData.r, drawData.g, drawData.b, drawData.a);
+
+                SDL_RenderLine(renderer,
+                    drawData.shapeData.line.StartPos.x, drawData.shapeData.line.StartPos.y,
+                    drawData.shapeData.line.EndPos.x, drawData.shapeData.line.EndPos.y);
+                break;
+            }
+
             case ShapeType::CIRCLE:
             {
                 Debug::DebugDrawHelpers::DrawDebugHollowCircle(drawData.shapeData.circle.CenterWorldPos,
@@ -76,15 +88,20 @@ void Core::ECS::Systems::DebugDrawSystem::UpdateSystem(const float deltaTime)
         });
 }
 
-void Core::ECS::Systems::DebugDrawSystem::DrawHollowCircle(const glm::vec2 &centerWorldPos, const float radius, float r, float g, float b, float a)
+void Core::ECS::Systems::DebugDrawSystem::DrawDebugLine(const glm::vec2 &startPos, const glm::vec2 &endPos, float r, float g, float b, float a)
 {
-    m_drawList.emplace_back(DebugDrawData(CircleDrawData(centerWorldPos, radius), r, g, b, a));
+    m_drawList.emplace_back(LineDrawData(startPos, endPos), r, g, b, a);
+}
+
+void Core::ECS::Systems::DebugDrawSystem::DrawDebugHollowCircle(const glm::vec2 &centerWorldPos, const float radius, float r, float g, float b, float a)
+{
+    m_drawList.emplace_back(CircleDrawData(centerWorldPos, radius), r, g, b, a);
 }
 
 void Core::ECS::Systems::DebugDrawSystem::DrawDebugPolygon(std::vector<glm::vec2>& points,
     float r, float g, float b, float a)
 {
-    m_drawList.emplace_back(DebugDrawData(PolygonDrawData(&points), r, g, b, a));
+    m_drawList.emplace_back(PolygonDrawData(&points), r, g, b, a);
 }
 
 

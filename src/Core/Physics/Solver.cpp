@@ -1,4 +1,4 @@
-﻿#include "../../../../../include/Core/Physics/Solver.h"
+﻿#include "../../../include/Core/Physics/Solver.h"
 #include <array>
 #include "Components/Rigidbody2D.h"
 #include "Components/Transform.h"
@@ -27,7 +27,7 @@ void Core::Physics::Solver::Solve(std::vector<PhysicsData::ContactManifold> &man
 				float inverseInertiaA = manifold.RigidbodyA->GetInverseMomentOfInertia();
 				float inverseInertiaB = manifold.RigidbodyB->GetInverseMomentOfInertia();
 
-				const float positionalCorrectionPercentage = 0.4f;
+				const float positionalCorrectionPercentage = 0.2f;
 				const float slop = 0.01f;
 				static float normalImpulses[2] = {0.0f};
 

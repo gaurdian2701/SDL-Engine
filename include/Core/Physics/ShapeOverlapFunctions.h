@@ -5,21 +5,6 @@
 
 namespace Core::Physics::ShapeOverlapFunctions
 {
-	static inline bool AABBVsAABB(const Components::AABB& aabb1, const Components::AABB& aabb2)
-	{
-		if (aabb1.MaxPoint.x < aabb2.MinPoint.x || aabb1.MinPoint.x > aabb2.MaxPoint.x)
-		{
-			return false;
-		}
-
-		if (aabb1.MaxPoint.y < aabb2.MinPoint.y || aabb1.MinPoint.y > aabb2.MaxPoint.y)
-		{
-			return false;
-		}
-
-		return true;
-	}
-
 	static inline bool CircleVsCircle(const glm::vec2& center1,
 		const glm::vec2& center2,
 		float radiusSum)

@@ -11,7 +11,11 @@ namespace Components
 	// Uses Counter-Clockwise winding order for storing points
 	struct PolygonCollider2D
 	{
-		PolygonCollider2D() = default;
+		PolygonCollider2D()
+		{
+			aabb.Collider = ColliderType::POLYGON;
+		}
+
 		~PolygonCollider2D() = default;
 
 		const glm::vec2& GetCenter() const
@@ -91,7 +95,7 @@ namespace Components
 			UpdateAABB();
 		}
 
-		const AABB& GetAABB() const
+		AABB& GetAABB()
 		{
 			return aabb;
 		}
@@ -192,8 +196,8 @@ namespace Components
 				}
 			}
 
-			aabb.MinPoint = minPoint;
-			aabb.MaxPoint = maxPoint;
+			aabb.BottomLeft = minPoint;
+			aabb.TopRight = maxPoint;
 		}
 
 		AABB aabb = AABB();

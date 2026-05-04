@@ -31,14 +31,18 @@ add_library(
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/CoreSystems/ResourceManager.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/CoreSystems/InputSystem.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/ParticleSystem.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/Physics/PhysicsSystem.cpp
+        src/Core/ECS/Systems/PhysicsSystem.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/SceneManager.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/Debug/DebugDrawSystem.cpp
+        src/Core/ECS/Systems/DebugDrawSystem.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/Editor.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/Physics/NarrowPhase.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/Physics/Solver.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/Physics/NaiveBroadPhase.cpp
+        src/Core/Physics/NarrowPhase.cpp
+        src/Core/Physics/Solver.cpp
+        src/Core/Physics/NaiveBroadPhase.cpp
         include/Core/Physics/ContactPoints.h
+        "include/Core/DataStructures/AABBQuadTree.h"
+        "src/Core/DataStructures/AABBQuadTree.cpp"
+        include/Core/Physics/AABBTreeBroadPhase.h
+        src/Core/Physics/AABBTreeBroadPhase.cpp
 )
 
 EnableASANCompileOptions(${ENGINE_BINARY_NAME})

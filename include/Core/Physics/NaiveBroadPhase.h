@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "BroadPhase.h"
-#include "Core/ECS/Systems/PhysicsSystem.h"
 
 namespace Core::Physics
 {

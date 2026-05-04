@@ -1,9 +1,10 @@
-﻿#include "../../../../../include/Core/Physics/NaiveBroadPhase.h"
+﻿#include "../../../include/Core/Physics/NaiveBroadPhase.h"
 #include "Components/PolygonCollider2D.h"
 #include "Components/CircleCollider2D.h"
 #include "Components/Transform.h"
 #include "Core/ECS/ECSManager.h"
-#include "../../../../../include/Core/Physics/ShapeOverlapFunctions.h"
+#include "../../../include/Core/Physics/ShapeOverlapFunctions.h"
+#include "Core/Physics/CollisionPair.h"
 
 void Core::Physics::NaiveBroadPhase::GeneratePairs(std::vector<PhysicsData::CollisionPair> &collisionPairs)
 {
@@ -20,7 +21,7 @@ void Core::Physics::NaiveBroadPhase::GeneratePairs(std::vector<PhysicsData::Coll
 		{
 		auto circleCollider2 = Core::ECS::ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(*circleID2);
 
-			if (Core::Physics::ShapeOverlapFunctions::AABBVsAABB(circleCollider1->GetAABB(), circleCollider2->GetAABB()))
+			if (circleCollider1->GetAABB().Overlaps(circleCollider2->GetAABB()))
 			{
 				collisionPairs.push_back(Core::Physics::PhysicsData::CollisionPair(*circleID1, *circleID2, PhysicsData::CircleVsCircle));
 			}
@@ -38,7 +39,7 @@ void Core::Physics::NaiveBroadPhase::GeneratePairs(std::vector<PhysicsData::Coll
 		for (auto polygonID2 = polygonID1 + 1; polygonID2 != polygonView.end(); ++polygonID2)
 		{
 			auto polygonCollider2 = Core::ECS::ECSManager::GetInstance().GetComponent<Components::PolygonCollider2D>(*polygonID2);
-			if (Core::Physics::ShapeOverlapFunctions::AABBVsAABB(polygonCollider1->GetAABB(), polygonCollider2->GetAABB()))
+			if (polygonCollider1->GetAABB().Overlaps(polygonCollider2->GetAABB()))
 			{
 				collisionPairs.push_back(PhysicsData::CollisionPair(*polygonID1, *polygonID2, PhysicsData::PolygonVsPolygon));
 			}
@@ -48,7 +49,7 @@ void Core::Physics::NaiveBroadPhase::GeneratePairs(std::vector<PhysicsData::Coll
 		for (circleID1 = circleView.begin()+1; circleID1 != circleView.end(); ++circleID1)
 		{
 			auto circleCollider = Core::ECS::ECSManager::GetInstance().GetComponent<Components::CircleCollider2D>(*circleID1);
-			if (ShapeOverlapFunctions::AABBVsAABB(polygonCollider1->GetAABB(), circleCollider->GetAABB()))
+			if (polygonCollider1->GetAABB().Overlaps(circleCollider->GetAABB()))
 			{
 				collisionPairs.push_back(PhysicsData::CollisionPair(*polygonID1, *circleID1, PhysicsData::PolygonVsCircle));
 			}

@@ -3,6 +3,12 @@
 
 namespace Core::ECS::Systems
 {
+    struct LineDrawData
+    {
+        glm::vec2 StartPos = glm::vec2(0.0f);
+        glm::vec2 EndPos = glm::vec2(0.0f);
+    };
+
     struct CircleDrawData
     {
         glm::vec2 CenterWorldPos = glm::vec2(0.0f);
@@ -16,18 +22,29 @@ namespace Core::ECS::Systems
 
     union ShapeData
     {
+        LineDrawData line;
         CircleDrawData circle;
         PolygonDrawData polygon;
     };
 
     enum class ShapeType : uint8_t
     {
+        LINE,
         CIRCLE,
         POLYGON
     };
 
     struct DebugDrawData
     {
+        DebugDrawData(const LineDrawData& someLine, float red, float green, float blue, float alpha) : shapeData{.line = someLine},
+        shapeType(ShapeType::LINE),
+        r(red),
+        g(green),
+        b(blue),
+        a(alpha)
+        {
+        }
+
         DebugDrawData(const CircleDrawData& someCircle, float red, float green, float blue, float alpha) : shapeData{.circle = someCircle},
         shapeType(ShapeType::CIRCLE),
         r(red),
@@ -60,7 +77,15 @@ namespace Core::ECS::Systems
 
         void RegisterInterestedComponents() override;
         void UpdateSystem(const float deltaTime) override;
-        void DrawHollowCircle(const glm::vec2& centerWorldPos,
+
+        void DrawDebugLine(const glm::vec2& startPos,
+            const glm::vec2& endPos,
+            float r,
+            float g,
+            float b,
+            float a);
+
+        void DrawDebugHollowCircle(const glm::vec2& centerWorldPos,
         const float radius,
         float r,
         float g,
