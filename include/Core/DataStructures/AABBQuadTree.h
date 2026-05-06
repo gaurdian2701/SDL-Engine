@@ -3,9 +3,7 @@
 #include <vec2.hpp>
 #include <SDL3/SDL_render.h>
 #include "Components/AABB.h"
-#ifdef _DEBUG
 #include "DebugStatements.h"
-#endif
 
 namespace Core::DataStructures
 {
@@ -38,7 +36,7 @@ namespace Core::DataStructures
 
         void QueryAllAABBsInTree(std::vector<Components::AABB*>& query);
 
-        DoDebug(void Visualize(););
+        DoDebug(void Visualize();)
 
     private:
         void ConstructChildBoundaries();

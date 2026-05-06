@@ -103,7 +103,7 @@ void Core::DataStructures::AABBQuadTree::QueryAllAABBsInTree(std::vector<Compone
     }
 }
 
-    void Core::DataStructures::AABBQuadTree::Visualize()
+DoDebug(void Core::DataStructures::AABBQuadTree::Visualize()
 {
     glm::vec2 topLeftBoundary = glm::vec2(m_nodeBoundary.BottomLeft.x, m_nodeBoundary.TopRight.y);
     glm::vec2 bottomRightBoundary = glm::vec2(m_nodeBoundary.TopRight.x, m_nodeBoundary.BottomLeft.y);
@@ -137,3 +137,4 @@ void Core::DataStructures::AABBQuadTree::QueryAllAABBsInTree(std::vector<Compone
         }
     }
 }
+);

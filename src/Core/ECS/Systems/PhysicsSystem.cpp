@@ -6,12 +6,18 @@
 #include "Core/ECS/ECSManager.h"
 #include "../../../../include/Core/Physics/NarrowPhase.h"
 #include "Core/Physics/AABBTreeBroadPhase.h"
+#include <chrono>
 
-Core::ECS::Systems::PhysicsSystem* Core::ECS::Systems::PhysicsSystem::m_instance = nullptr;
+#include "Core/CoreSystems/InputSystem.h"
+#include "Core/Physics/NaiveBroadPhase.h"
 
-Core::ECS::Systems::PhysicsSystem *Core::ECS::Systems::PhysicsSystem::GetInstance()
+inline const char* NAIVE_BROAD_PHASE_TEXT = "NAIVE";
+inline const char* QUADTREE_BROAD_PHASE_TEXT = "QUADTREE";
+
+Core::ECS::Systems::PhysicsSystem::PhysicsSystem()
 {
-	return m_instance;
+	m_naiveBroadPhase = new Physics::NaiveBroadPhase();
+	m_quadTreeBroadPhase = new Physics::AABBTreeBroadPhase();
 }
 
 void Core::ECS::Systems::PhysicsSystem::RegisterInterestedComponents()
@@ -55,27 +61,44 @@ void Core::ECS::Systems::PhysicsSystem::OnComponentAdded(const std::uint32_t ent
 
 void Core::ECS::Systems::PhysicsSystem::BeginSystem()
 {
-	m_broadPhase = new Physics::AABBTreeBroadPhase();
+	m_currentBroadPhase = m_naiveBroadPhase;
+	m_broadPhaseUsedText = NAIVE_BROAD_PHASE_TEXT;
 	m_collisionPairs.reserve(ECSManager::GetInstance().GetMaxEntityCount());
 	m_collisionManifolds.reserve(ECSManager::GetInstance().GetMaxEntityCount());
 }
 
 void Core::ECS::Systems::PhysicsSystem::UpdateSystem(const float deltaTime)
 {
-	accumulator += deltaTime;
+	m_accumulator += deltaTime;
 
-	while (accumulator >= m_timeStep)
+	while (m_accumulator >= m_timeStep)
 	{
+		std::chrono::time_point<std::chrono::steady_clock> start = std::chrono::steady_clock::now();
 		//Update positions and colliders before physics step
 		IntegrateVelocities(m_timeStep);
 		IntegratePositions(m_timeStep);
 		UpdateCollidersAndRigidbodies();
 
-		m_broadPhase->GeneratePairs(m_collisionPairs);
+		m_currentBroadPhase->GeneratePairs(m_collisionPairs);
 		m_narrowPhase.GenerateManifolds(m_collisionPairs, m_collisionManifolds);
 		m_solver.Solve(m_collisionManifolds, m_timeStep);
 
-		accumulator -= m_timeStep;
+		std::chrono::time_point<std::chrono::steady_clock> end = std::chrono::steady_clock::now();
+		m_TimeTakenForPhysicsStep = std::chrono::duration<double, std::milli>(end - start).count();
+
+		m_accumulator -= m_timeStep;
+	}
+
+	//Register Inputs for switching broad phase
+	if (Core::Input::InputSystem::GetInstance().IsKeyPressed(SDL_SCANCODE_Q))
+	{
+		m_currentBroadPhase = m_quadTreeBroadPhase;
+		m_broadPhaseUsedText = QUADTREE_BROAD_PHASE_TEXT;
+	}
+	if (Core::Input::InputSystem::GetInstance().IsKeyPressed(SDL_SCANCODE_N))
+	{
+		m_currentBroadPhase = m_naiveBroadPhase;
+		m_broadPhaseUsedText = NAIVE_BROAD_PHASE_TEXT;
 	}
 }
 

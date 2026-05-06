@@ -87,7 +87,5 @@ void Core::Physics::AABBTreeBroadPhase::GeneratePairs(std::vector<PhysicsData::C
     }
 
     allAABBs.clear();
-    DoDebug(aabbTree->Visualize());
-
     delete aabbTree;
 }
