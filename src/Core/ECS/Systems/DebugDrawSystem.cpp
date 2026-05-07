@@ -63,11 +63,11 @@ void Core::ECS::Systems::DebugDrawSystem::UpdateSystem(const float deltaTime)
         {
             if (polygon2D->IsColliding)
             {
-                m_drawList.emplace_back(DebugDrawData(PolygonDrawData(&polygon2D->GetVertices()), 255, 0, 0, 255));
+                m_drawList.emplace_back(PolygonDrawData(&polygon2D->GetVertices()), 255, 0, 0, 255);
             }
             else
             {
-                m_drawList.emplace_back(DebugDrawData(PolygonDrawData(&polygon2D->GetVertices()), 0, 255, 0, 255));
+                m_drawList.emplace_back(PolygonDrawData(&polygon2D->GetVertices()), 0, 255, 0, 255);
             }
         });
 
@@ -77,13 +77,13 @@ void Core::ECS::Systems::DebugDrawSystem::UpdateSystem(const float deltaTime)
         {
             if (circleCollider->IsColliding)
             {
-                m_drawList.emplace_back(DebugDrawData(CircleDrawData(transform->Position, circleCollider->GetRadius()),
-                    255, 0, 0, 255));
+                m_drawList.emplace_back(CircleDrawData(transform->Position, circleCollider->GetRadius()),
+                    255, 0, 0, 255);
             }
             else
             {
-                m_drawList.emplace_back(DebugDrawData(CircleDrawData(transform->Position, circleCollider->GetRadius()),
-                    0, 255, 0, 255));
+                m_drawList.emplace_back(CircleDrawData(transform->Position, circleCollider->GetRadius()),
+                    0, 255, 0, 255);
             }
         });
 }

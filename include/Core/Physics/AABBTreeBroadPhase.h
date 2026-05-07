@@ -13,7 +13,7 @@ namespace Core::Physics
     {
     public:
         AABBTreeBroadPhase();
-        ~AABBTreeBroadPhase() override = default;
+        ~AABBTreeBroadPhase() override;
 
         void GeneratePairs(std::vector<PhysicsData::CollisionPair> &collisionPairs) override;
 

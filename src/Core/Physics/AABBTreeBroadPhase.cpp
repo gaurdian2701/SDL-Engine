@@ -14,6 +14,12 @@ Core::Physics::AABBTreeBroadPhase::AABBTreeBroadPhase()
     auto &app = Application::GetCoreInstance();
     m_topRightBoundary = ScreenHelperFunctions::ScreenToWorld(glm::vec2(app.GetScreenWidth(), 0.0f));
     m_bottomLeftBoundary = ScreenHelperFunctions::ScreenToWorld(glm::vec2(0.0f, app.GetScreenHeight()));
+    aabbTree = new DataStructures::AABBQuadTree(m_topRightBoundary, m_bottomLeftBoundary, 0);
+}
+
+Core::Physics::AABBTreeBroadPhase::~AABBTreeBroadPhase()
+{
+    delete aabbTree;
 }
 
 void Core::Physics::AABBTreeBroadPhase::GeneratePairs(std::vector<PhysicsData::CollisionPair> &collisionPairs)
@@ -23,7 +29,6 @@ void Core::Physics::AABBTreeBroadPhase::GeneratePairs(std::vector<PhysicsData::C
     auto &ecsManager = Core::ECS::ECSManager::GetInstance();
     auto [circleStart, circleView] = ecsManager.GetView<Components::CircleCollider2D>();
     auto [polygonStart, polygonView] = ecsManager.GetView<Components::PolygonCollider2D>();
-    aabbTree = new DataStructures::AABBQuadTree(m_topRightBoundary, m_bottomLeftBoundary, 0);
 
     static std::vector<Components::AABB *> allAABBs = std::vector<Components::AABB *>();
     allAABBs.reserve(ecsManager.GetMaxEntityCount());
@@ -87,5 +92,5 @@ void Core::Physics::AABBTreeBroadPhase::GeneratePairs(std::vector<PhysicsData::C
     }
 
     allAABBs.clear();
-    delete aabbTree;
+    aabbTree->Clear();
 }

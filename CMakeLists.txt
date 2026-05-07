@@ -40,6 +40,7 @@ add_library(
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/Physics/NaiveBroadPhase.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/DataStructures/AABBQuadTree.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/Physics/AABBTreeBroadPhase.cpp
+        include/Core/Debug/TracyMalloc.h
 )
 
 EnableASANCompileOptions(${ENGINE_BINARY_NAME})

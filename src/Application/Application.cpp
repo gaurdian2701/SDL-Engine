@@ -15,6 +15,7 @@
     #include "Core/Editor.h"
     #include "tracy/Tracy.hpp"
     #include <thread>
+    #include "Core/Debug/TracyMalloc.h"
 #endif
 
 static Application* CoreApplicationInstance = nullptr;
@@ -78,6 +79,7 @@ void Application::StartImGuiDebug()
 
 void Application::Init()
 {
+    DoDebug(ZoneScopedN("Main Application"));
     StartWindow();
     DoDebug(StartImGuiDebug());
     StartTTF();
@@ -119,7 +121,8 @@ void Application::Run()
 
     while (m_isRunning)
     {
-        ZoneScopedN("Main Application");
+        DoDebug(ZoneScopedN("Application Update Loop"););
+
         auto currentFrameTime = std::chrono::high_resolution_clock::now();
         m_deltaTime = std::chrono::duration<float>(currentFrameTime - lastFrameTime).count();
 
@@ -147,7 +150,7 @@ void Application::Run()
 
         lastFrameTime = currentFrameTime;
 
-        FrameMark;
+        DoDebug(FrameMark;);
     }
 
     GetApplicationInstance()->EndApplication();

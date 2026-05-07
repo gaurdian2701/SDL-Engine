@@ -5,6 +5,7 @@
 #include "Components/Transform.h"
 #include "Components/Rigidbody2D.h"
 #include "Core/ECS/Systems/DebugDrawSystem.h"
+#include "Core/ECS/Systems/PhysicsSystem.h"
 #include "Core/Physics/ShapeOverlapFunctions.h"
 #include "Core/Physics/ContactManifold.h"
 #include "Core/Physics/CollisionPair.h"
@@ -49,8 +50,12 @@ void Core::Physics::NarrowPhase::DoCircleVsCircle(const Core::Physics::PhysicsDa
 			FindCircleVsCircleContactPoint(*circleA, *circleB, contactPoints.Points[0]);
 
 			DoDebug(
-				ECS::Systems::DebugDrawSystem* debugSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::DebugDrawSystem>();
-				debugSystem->DrawDebugHollowCircle(contactPoints.Points[0], 10.0f, 255, 240, 0, 255);
+				auto physicsSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::PhysicsSystem>();
+				if (physicsSystem->m_firstStepForCurrentFrame)
+				{
+					ECS::Systems::DebugDrawSystem* debugSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::DebugDrawSystem>();
+					debugSystem->DrawDebugHollowCircle(contactPoints.Points[0], 10.0f, 255, 240, 0, 255);
+				}
 				);
 
 			glm::vec2 contactNormal = glm::normalize(directionVector);
@@ -99,8 +104,12 @@ void Core::Physics::NarrowPhase::DoPolygonVsCircle(const Core::Physics::PhysicsD
 			closestPolygonVertexIndex);
 
 		DoDebug(
-		ECS::Systems::DebugDrawSystem* debugSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::DebugDrawSystem>();
-		debugSystem->DrawDebugHollowCircle(contactPoints.Points[0], 10.0f, 255, 240, 0, 255);
+		auto physicsSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::PhysicsSystem>();
+		if (physicsSystem->m_firstStepForCurrentFrame)
+		{
+			ECS::Systems::DebugDrawSystem* debugSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::DebugDrawSystem>();
+			debugSystem->DrawDebugHollowCircle(contactPoints.Points[0], 10.0f, 255, 240, 0, 255);
+		}
 		);
 
 		manifolds.emplace_back(polygonTransform,
@@ -161,14 +170,18 @@ void Core::Physics::NarrowPhase::DoPolygonVsPolygon(const Core::Physics::Physics
 			contactPoints.NumberOfContactPoints);
 
 		DoDebug(
-		ECS::Systems::DebugDrawSystem* debugSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::DebugDrawSystem>();
-		if (contactPoints.NumberOfContactPoints > 0)
+		auto physicsSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::PhysicsSystem>();
+		if (physicsSystem->m_firstStepForCurrentFrame)
 		{
-			debugSystem->DrawDebugHollowCircle(contactPoints.Points[0], 10.0f, 255, 240, 0, 255);
-
-			if (contactPoints.NumberOfContactPoints > 1)
+			ECS::Systems::DebugDrawSystem* debugSystem = ECS::ECSManager::GetInstance().GetSystem<ECS::Systems::DebugDrawSystem>();
+			if (contactPoints.NumberOfContactPoints > 0)
 			{
-				debugSystem->DrawDebugHollowCircle(contactPoints.Points[1], 10.0f, 255, 240, 0, 255);
+				debugSystem->DrawDebugHollowCircle(contactPoints.Points[0], 10.0f, 255, 240, 0, 255);
+
+				if (contactPoints.NumberOfContactPoints > 1)
+				{
+					debugSystem->DrawDebugHollowCircle(contactPoints.Points[1], 10.0f, 255, 240, 0, 255);
+				}
 			}
 		}
 		);

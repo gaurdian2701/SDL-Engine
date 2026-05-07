@@ -35,6 +35,7 @@ namespace Core::ECS::Systems
 	public:
 		double m_TimeTakenForPhysicsStep = 0.0f;
 		std::string m_broadPhaseUsedText;
+		DoDebug(bool m_firstStepForCurrentFrame = false);
 
 	private:
 		std::vector<Physics::PhysicsData::ContactManifold> m_collisionManifolds =

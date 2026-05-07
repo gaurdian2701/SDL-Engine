@@ -21,15 +21,12 @@ namespace Core::DataStructures
 
         ~AABBQuadTree()
         {
-            m_aabbsInTree.clear();
-
-            for (auto& tree : m_childTrees)
-            {
-                delete tree;
-            }
+            Clear();
         }
 
         void Insert(Components::AABB& aabb);
+
+        void Clear();
 
         void GetClosest(Components::AABB& queriedAABB,
             std::vector<Components::AABB*>& closestAABBs);

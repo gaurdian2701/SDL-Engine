@@ -11,7 +11,7 @@ namespace Debug::DebugDrawHelpers
         float b,
         float a)
     {
-        SDL_FPoint* polygonDrawPoints = new SDL_FPoint[points.size()+1];
+        std::vector<SDL_FPoint> polygonDrawPoints = std::vector<SDL_FPoint>(points.size() + 1);
         glm::vec2 screenCoordinates = Core::ScreenHelperFunctions::WorldToScreen(glm::vec2(0.0f));
 
         int pointIndex = 0;
@@ -24,12 +24,12 @@ namespace Debug::DebugDrawHelpers
         polygonDrawPoints[pointIndex] = polygonDrawPoints[0];
 
         SDL_SetRenderDrawColor(Application::GetCoreInstance().GetMainRenderer(), r, g, b, a);
-        SDL_RenderLines(Application::GetCoreInstance().GetMainRenderer(), polygonDrawPoints, points.size()+1);
+        SDL_RenderLines(Application::GetCoreInstance().GetMainRenderer(), polygonDrawPoints.data(), points.size()+1);
     }
 
     static inline void DrawCirclePoints(float xc, float yc, float x, float y)
     {
-        static SDL_FPoint* m_circleDrawPoints = new SDL_FPoint[8];
+        static std::vector<SDL_FPoint> m_circleDrawPoints = std::vector<SDL_FPoint>(8);
 
         m_circleDrawPoints[0] = SDL_FPoint(xc+x, yc+y);
         m_circleDrawPoints[1] = SDL_FPoint(xc-x, yc+y);
@@ -40,7 +40,7 @@ namespace Debug::DebugDrawHelpers
         m_circleDrawPoints[6] = SDL_FPoint(xc+y, yc-x);
         m_circleDrawPoints[7] = SDL_FPoint(xc-y, yc-x);
 
-        SDL_RenderPoints(Application::GetCoreInstance().GetMainRenderer(), m_circleDrawPoints, 8);
+        SDL_RenderPoints(Application::GetCoreInstance().GetMainRenderer(), m_circleDrawPoints.data(), 8);
     }
 
     //Uses Bresenham's Circle Drawing Algorithm

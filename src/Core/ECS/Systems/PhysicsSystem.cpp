@@ -81,10 +81,13 @@ void Core::ECS::Systems::PhysicsSystem::BeginSystem()
 void Core::ECS::Systems::PhysicsSystem::UpdateSystem(const float deltaTime)
 {
 	m_accumulator += deltaTime;
-	ZoneScopedN("Physics System Update");
+	DoDebug(
+		ZoneScopedN("Physics System Update");
+		m_firstStepForCurrentFrame = true;);
+
 	while (m_accumulator >= m_timeStep)
 	{
-		ZoneScopedN("Physics Time Step");
+		DoDebug(ZoneScopedN("Physics Time Step"););
 		std::chrono::time_point<std::chrono::steady_clock> start = std::chrono::steady_clock::now();
 		//Update positions and colliders before physics step
 		IntegrateVelocities(m_timeStep);
@@ -99,6 +102,7 @@ void Core::ECS::Systems::PhysicsSystem::UpdateSystem(const float deltaTime)
 		m_TimeTakenForPhysicsStep = std::chrono::duration<double, std::milli>(end - start).count();
 
 		m_accumulator -= m_timeStep;
+		DoDebug(m_firstStepForCurrentFrame = false);
 	}
 
 	//Register Inputs for switching broad phase

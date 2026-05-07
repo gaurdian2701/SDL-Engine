@@ -3,6 +3,17 @@
 #include "Core/ECS/Systems/DebugDrawSystem.h"
 #include "Core/Physics/ShapeOverlapFunctions.h"
 
+void Core::DataStructures::AABBQuadTree::Clear()
+{
+    m_aabbsInTree.clear();
+
+    for (auto& tree : m_childTrees)
+    {
+        delete tree;
+        tree = nullptr;
+    }
+}
+
 void Core::DataStructures::AABBQuadTree::ConstructChildBoundaries()
 {
     const float midPointX = (m_nodeBoundary.BottomLeft.x + m_nodeBoundary.TopRight.x) * 0.5f;
@@ -49,7 +60,6 @@ void Core::DataStructures::AABBQuadTree::Insert(Components::AABB &aabb)
     //Unable to insert it in any of the children, so insert it in the current tree
     m_aabbsInTree.push_back(&aabb);
 }
-
 
 
 void Core::DataStructures::AABBQuadTree::GetClosest(Components::AABB &queriedAABB,
