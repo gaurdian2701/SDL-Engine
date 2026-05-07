@@ -1,0 +1,3 @@
+include("C:/Users/gaurd/Desktop/kiran_cs/Projects/C++/ECS-Physics-SDL/SDL-Engine/vendor/tracy/cmake/CPM.cmake")
+CPMAddPackage("NAME;PPQSort;GITHUB_REPOSITORY;GabTux/PPQSort;VERSION;1.0.6;PATCHES;C:/Users/gaurd/Desktop/kiran_cs/Projects/C++/ECS-Physics-SDL/SDL-Engine/vendor/tracy/cmake/ppqsort-nodebug.patch;C:/Users/gaurd/Desktop/kiran_cs/Projects/C++/ECS-Physics-SDL/SDL-Engine/vendor/tracy/cmake/ppqsort-semaphore.patch;EXCLUDE_FROM_ALL;TRUE")
+set(PPQSort_FOUND TRUE)

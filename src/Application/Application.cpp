@@ -13,6 +13,8 @@
     #include "DebugStatements.h"
     #include <iostream>
     #include "Core/Editor.h"
+    #include "tracy/Tracy.hpp"
+    #include <thread>
 #endif
 
 static Application* CoreApplicationInstance = nullptr;
@@ -117,6 +119,7 @@ void Application::Run()
 
     while (m_isRunning)
     {
+        ZoneScopedN("Main Application");
         auto currentFrameTime = std::chrono::high_resolution_clock::now();
         m_deltaTime = std::chrono::duration<float>(currentFrameTime - lastFrameTime).count();
 
@@ -143,6 +146,8 @@ void Application::Run()
         );
 
         lastFrameTime = currentFrameTime;
+
+        FrameMark;
     }
 
     GetApplicationInstance()->EndApplication();

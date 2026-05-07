@@ -9,7 +9,7 @@ add_subdirectory(vendor)
 set(ENGINE_BINARY_NAME SDLEngineLib)
 set(VENDOR_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vendor/include)
 set(BUILD_SHARED_LIBS OFF)
-set(ENABLE_ASAN OFF CACHE BOOL "Use Windows Address Sanitizer?")
+option(ENABLE_ASAN "Enable Windows Address Sanitizer" OFF)
 
 function(EnableASANCompileOptions targetProject)
     if(${CMAKE_GENERATOR} MATCHES "Visual Studio" AND ENABLE_ASAN)
@@ -31,18 +31,15 @@ add_library(
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/CoreSystems/ResourceManager.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/CoreSystems/InputSystem.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/ParticleSystem.cpp
-        src/Core/ECS/Systems/PhysicsSystem.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/PhysicsSystem.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/SceneManager.cpp
-        src/Core/ECS/Systems/DebugDrawSystem.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ECS/Systems/DebugDrawSystem.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/Editor.cpp
-        src/Core/Physics/NarrowPhase.cpp
-        src/Core/Physics/Solver.cpp
-        src/Core/Physics/NaiveBroadPhase.cpp
-        include/Core/Physics/ContactPoints.h
-        "include/Core/DataStructures/AABBQuadTree.h"
-        "src/Core/DataStructures/AABBQuadTree.cpp"
-        include/Core/Physics/AABBTreeBroadPhase.h
-        src/Core/Physics/AABBTreeBroadPhase.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/Physics/NarrowPhase.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/Physics/Solver.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/Physics/NaiveBroadPhase.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/DataStructures/AABBQuadTree.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/Physics/AABBTreeBroadPhase.cpp
 )
 
 EnableASANCompileOptions(${ENGINE_BINARY_NAME})

@@ -4,7 +4,6 @@
 #include "Scene/GameObject.h"
 #include "Components/Transform.h"
 #include "Components/Renderer2D.h"
-#include "imgui.h"
 #include "Components/PolygonCollider2D.h"
 #include "Components/CircleCollider2D.h"
 #include "Components/Rigidbody2D.h"
@@ -14,9 +13,13 @@
 #include "Core/CoreSystems/ResourceManager.h"
 #include "Scene/SceneManager.h"
 
+#ifdef _DEBUG
+#include "imgui.h"
+#endif
+
 Core::GameScene::GameScene(const std::uint32_t maxEntitiesInScene)
 {
-	ECS::ECSManager::GetInstance().InitializeManager(1000);
+	ECS::ECSManager::GetInstance().InitializeManager(500);
 	m_resourceManager = new CoreSystems::ResourceManager();
 	RegisterComponents();
 

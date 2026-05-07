@@ -1,0 +1,3 @@
+include("C:/Users/gaurd/Desktop/kiran_cs/Projects/C++/ECS-Physics-SDL/SDL-Engine/vendor/tracy/cmake/CPM.cmake")
+CPMAddPackage("NAME;ImGui;GITHUB_REPOSITORY;ocornut/imgui;GIT_TAG;v1.92.7-docking;DOWNLOAD_ONLY;TRUE;PATCHES;C:/Users/gaurd/Desktop/kiran_cs/Projects/C++/ECS-Physics-SDL/SDL-Engine/vendor/tracy/cmake/imgui-emscripten.patch;C:/Users/gaurd/Desktop/kiran_cs/Projects/C++/ECS-Physics-SDL/SDL-Engine/vendor/tracy/cmake/imgui-loader.patch")
+set(ImGui_FOUND TRUE)

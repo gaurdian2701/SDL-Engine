@@ -7,12 +7,23 @@
 #include "../../../../include/Core/Physics/NarrowPhase.h"
 #include "Core/Physics/AABBTreeBroadPhase.h"
 #include <chrono>
-
 #include "Core/CoreSystems/InputSystem.h"
 #include "Core/Physics/NaiveBroadPhase.h"
 
+#ifdef _DEBUG
+#include "tracy/Tracy.hpp"
+#include <thread>
+#endif
+
 inline const char* NAIVE_BROAD_PHASE_TEXT = "NAIVE";
 inline const char* QUADTREE_BROAD_PHASE_TEXT = "QUADTREE";
+
+Core::ECS::Systems::PhysicsSystem::~PhysicsSystem()
+{
+	m_currentBroadPhase = nullptr;
+	delete m_naiveBroadPhase;
+	delete m_quadTreeBroadPhase;
+}
 
 Core::ECS::Systems::PhysicsSystem::PhysicsSystem()
 {
@@ -70,9 +81,10 @@ void Core::ECS::Systems::PhysicsSystem::BeginSystem()
 void Core::ECS::Systems::PhysicsSystem::UpdateSystem(const float deltaTime)
 {
 	m_accumulator += deltaTime;
-
+	ZoneScopedN("Physics System Update");
 	while (m_accumulator >= m_timeStep)
 	{
+		ZoneScopedN("Physics Time Step");
 		std::chrono::time_point<std::chrono::steady_clock> start = std::chrono::steady_clock::now();
 		//Update positions and colliders before physics step
 		IntegrateVelocities(m_timeStep);

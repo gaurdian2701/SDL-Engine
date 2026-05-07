@@ -20,7 +20,7 @@ namespace Core::ECS::Systems
 	{
 	public:
 		PhysicsSystem();
-		~PhysicsSystem() override = default;
+		~PhysicsSystem() override;
 
 		void RegisterInterestedComponents() override;
 		void OnComponentAdded(const std::uint32_t entityID) override;

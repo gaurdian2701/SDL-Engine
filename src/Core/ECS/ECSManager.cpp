@@ -4,6 +4,12 @@
 #include "Core/ECS/Systems/RenderingSystem.h"
 #include "../../../include/Core/ECS/Systems/DebugDrawSystem.h"
 
+Core::ECS::ECSManager::~ECSManager()
+{
+	CleanupManager();
+	DestroySystems();
+}
+
 std::vector<void(*)(Core::ECS::ECSManager &, const std::uint32_t)>&
 Core::ECS::ECSManager::GetComponentRemovalHandlesArray()
 {
@@ -29,6 +35,14 @@ void Core::ECS::ECSManager::CreateSystems()
 	m_systemsList.push_back(new Systems::ParticleSystem());
 	DoDebug(m_systemsList.push_back(new Systems::DebugDrawSystem()););
 	m_systemsList.push_back(new Systems::RenderingSystem());
+}
+
+void Core::ECS::ECSManager::DestroySystems()
+{
+	for (auto& system : m_systemsList)
+	{
+		delete system;
+	}
 }
 
 void Core::ECS::ECSManager::InitializeSystems()
@@ -74,6 +88,11 @@ void Core::ECS::ECSManager::CleanupManager()
 	{
 		system->CleanupSystem();
 	}
+
+	for (auto& [type, pool] : m_componentPoolMap)
+	{
+		delete pool;
+	}
 }
 
 std::uint32_t Core::ECS::ECSManager::GenerateEntityID()
@@ -96,6 +115,7 @@ void Core::ECS::ECSManager::FreeEntityID(const std::uint32_t entityID)
 	{
 		m_entityFreeList.push_back(entityID);
 	}
+	m_entityBitSetMap.erase(entityID);
 }
 
 

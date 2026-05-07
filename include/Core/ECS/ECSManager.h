@@ -19,12 +19,12 @@ namespace Core::ECS
 			m_componentRemovalHandles.resize(MAX_COMPONENT_TYPES);
 		}
 
-		~ECSManager() = default;
+		~ECSManager();
 
 		static ECSManager &GetInstance()
 		{
-			static ECSManager *instance = new ECSManager();
-			return *instance;
+			static ECSManager instance = ECSManager();
+			return instance;
 		}
 
 		void InitializeManager(uint32_t someMaxEntities);
@@ -75,7 +75,7 @@ DoDebug(
 		void AddComponent(const std::uint32_t someEntityID)
 		{
 			dynamic_cast<SparseSet<T> *>(m_componentPoolMap[std::type_index(typeid(T))])
-					->AddComponentToEntity(someEntityID, std::forward<T>(m_componentFactory.CreateComponent<T>()));
+					->AddComponentToEntity(someEntityID, m_componentFactory.CreateComponent<T>());
 
 			m_entityBitSetMap[someEntityID].set(GetGeneratedComponentTypeIndex<T>(*this), true);
 
@@ -249,7 +249,7 @@ DoDebug(
 
 	private:
 		void CreateSystems();
-
+		void DestroySystems();
 		void InitializeSystems();
 
 	private:
