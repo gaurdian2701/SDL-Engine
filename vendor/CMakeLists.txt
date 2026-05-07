@@ -49,6 +49,11 @@ endif()
 
 if(TRACY_ENABLE)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tracy)
+    target_include_directories(
+            vendor
+                INTERFACE
+                    ${CMAKE_CURRENT_SOURCE_DIR}/tracy/public
+    )
     target_link_libraries(
             vendor
                 INTERFACE
