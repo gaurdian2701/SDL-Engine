@@ -5,6 +5,11 @@
 
 namespace Core
 {
+	class GameScene;
+}
+
+namespace Core
+{
 	class Editor;
 }
 
@@ -70,8 +75,8 @@ private:
 	DoDebug(void PresentImGuiFrame());
 
 public:
-	int m_screenWidth = 1920;
-	int m_screenHeight = 1080;
+	int m_screenWidth = 0;
+	int m_screenHeight = 0;
 
 protected:
 	SDL_Window* m_mainWindow = nullptr;
@@ -83,7 +88,7 @@ protected:
 	bool m_isRunning = true;
 
 private:
-	SDL_Color m_backgroundColor = { 0, 0, 0, 255 };
+	SDL_Color m_backgroundColor = SDL_Color();
 	SDL_Event m_mainEventCatcher = SDL_Event {};
 	float m_deltaTime = 0.0f;
 };

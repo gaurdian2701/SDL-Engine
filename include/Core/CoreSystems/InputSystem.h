@@ -10,6 +10,7 @@ namespace Core::Input
     {
     private:
         InputSystem() = default;
+    public:
         ~InputSystem() override = default;
 
         void ProcessEvents();

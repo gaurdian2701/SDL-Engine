@@ -3,7 +3,6 @@
 #include "Application/Application.h"
 #include "Core/ECS/ECSManager.h"
 #include "DebugStatements.h"
-#include "CoreSystems/ResourceManager.h"
 
 namespace Scene
 {
@@ -12,14 +11,16 @@ namespace Scene
 
 namespace Core
 {
+    namespace CoreSystems
+    {
+        class ResourceManager;
+    }
+
     class GameScene
     {
     public:
         explicit GameScene(const std::uint32_t maxEntitiesInScene);
-        virtual ~GameScene()
-        {
-            delete m_resourceManager;
-        }
+        virtual ~GameScene();
 
         virtual void CreateGameObjects() = 0;
         virtual void InitializeScene();
@@ -28,11 +29,7 @@ namespace Core
         virtual void Update(const float deltaTime);
 
         ECS::ECSManager& GetECSManager();
-        CoreSystems::ResourceManager& GetResourceManager()
-        {
-            return *m_resourceManager;
-        }
-
+        CoreSystems::ResourceManager& GetResourceManager();
         const std::vector<Scene::GameObject*>& GetGameObjectsInScene()
         {
             return m_gameObjectsInScene;
@@ -49,6 +46,7 @@ namespace Core
         inline void UnTrackGameObject(Scene::GameObject* someGameObject);
         void GarbageCollect();
         void SetupForEnd();
+        void ShutdownSceneImmediate();
         bool HasEnded() const
         {
             return m_sceneEndTriggered;

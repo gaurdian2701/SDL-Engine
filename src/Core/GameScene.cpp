@@ -27,6 +27,16 @@ Core::GameScene::GameScene(const std::uint32_t maxEntitiesInScene)
 	m_maxEntityCount = maxEntitiesInScene;
 }
 
+Core::GameScene::~GameScene()
+{
+	delete m_resourceManager;
+}
+
+Core::CoreSystems::ResourceManager &Core::GameScene::GetResourceManager()
+{
+	return *m_resourceManager;
+}
+
 void Core::GameScene::InitializeScene()
 {
 	CreateGameObjects();
@@ -95,8 +105,7 @@ void Core::GameScene::Update(const float deltaTime)
 {
 	if (m_sceneEndTriggered)
 	{
-		CleanupScene();
-		Application::GetSceneManager().NotifySceneForDelete(this);
+		ShutdownSceneImmediate();
 		return;
 	}
 
@@ -247,6 +256,12 @@ void Core::GameScene::CleanupScene()
 	m_gameObjectsInScene.erase(m_gameObjectsInScene.begin(), m_gameObjectsInScene.end());
 	m_resourceManager->ClearData();
 	ECS::ECSManager::GetInstance().CleanupManager();
+}
+
+void Core::GameScene::ShutdownSceneImmediate()
+{
+	CleanupScene();
+	Application::GetSceneManager().NotifySceneForDelete(this);
 }
 
 void Core::GameScene::SetupForEnd()

@@ -92,7 +92,10 @@ void Core::ECS::ECSManager::CleanupManager()
 	for (auto& [type, pool] : m_componentPoolMap)
 	{
 		delete pool;
+		pool = nullptr;
 	}
+
+	m_componentPoolMap.clear();
 }
 
 std::uint32_t Core::ECS::ECSManager::GenerateEntityID()

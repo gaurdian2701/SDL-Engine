@@ -1,6 +1,8 @@
 #include "Application/Application.h"
 #include <chrono>
 #include <SDL3/SDL_init.h>
+
+#include "Application/ScreenSettings.h"
 #include "Core/CoreSystems/CoreSystemsHolder.h"
 #include "Scene/SceneManager.h"
 #include "SDL3_ttf/SDL_ttf.h"
@@ -15,7 +17,6 @@
     #include "Core/Editor.h"
     #include "tracy/Tracy.hpp"
     #include <thread>
-    #include "Core/Debug/TracyMalloc.h"
 #endif
 
 static Application* CoreApplicationInstance = nullptr;
@@ -29,6 +30,25 @@ Scene::SceneManager& Application::GetSceneManager()
 {
     static Scene::SceneManager sceneManager = Scene::SceneManager();
     return sceneManager;
+}
+
+void Application::Init()
+{
+    m_screenWidth = ScreenSettings::SCREEN_WIDTH;
+    m_screenHeight = ScreenSettings::SCREEN_HEIGHT;
+    m_backgroundColor = ScreenSettings::BACKGROUND_COLOR;
+
+    DoDebug(ZoneScopedN("Main Application"));
+    StartWindow();
+    DoDebug(StartImGuiDebug());
+    StartTTF();
+
+    for (auto& system : Core::GetCoreSystems())
+    {
+        system->Initialize();
+    }
+
+    DoDebug(m_editor = new Core::Editor());
 }
 
 void Application::StartWindow()
@@ -76,21 +96,6 @@ void Application::StartImGuiDebug()
     ImGui_ImplSDLRenderer3_Init(m_mainRenderer);
 }
 );
-
-void Application::Init()
-{
-    DoDebug(ZoneScopedN("Main Application"));
-    StartWindow();
-    DoDebug(StartImGuiDebug());
-    StartTTF();
-
-    for (auto& system : Core::GetCoreSystems())
-    {
-        system->Initialize();
-    }
-
-    DoDebug(m_editor = new Core::Editor());
-}
 
 void Application::InitiateShutdown()
 {

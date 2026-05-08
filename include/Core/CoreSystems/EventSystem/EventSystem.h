@@ -42,8 +42,8 @@ namespace Core::Events
     public:
         static EventSystem& GetInstance()
         {
-            static EventSystem* instance = new EventSystem();
-            return *instance;
+            static EventSystem instance = EventSystem();
+            return instance;
         }
 
         template<typename T>
