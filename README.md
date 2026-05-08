@@ -25,12 +25,11 @@ Physics Code can be found in the following folders:\
 [Physics Headers](include/Core/ECS/Systems/Physics)\
 [Physics Source Files](src/Core/ECS/Systems/Physics)
 
-- Currently I am implementing a naive broad phase that uses AABB testing to produce collision pairs.
-- To make colliders more generic to work with each other, I am currently refactoring my collider component so that the user has to use only one collider component and then specify the type of collider inside of the collider struct.
-- I would use a sort of function jump table to resolve collisions between different types of shapes, i.e. CircleVsCircle would be 0,0 in the jump table which would correspond to a function ptr.
-
-(REFACTORING - NOT IMPLEMENTED YET)
-- Each collider struct would simply store information about the collider type. The Physics system would own sparse sets of each type of collider. So instead of directly storing different types of colliders, I have decided to go with one collider component, whereas the physics engine would store the shape data(i.e. circle, box, polygon, etc.) in sparse sets.
-- The user would have to directly use the Physics System to make changes to shape data. The collider component is simply a data handle to the shape data that the Physics System would own and manage.
+- Can create n-sided uniform convex polygon colliders
+- Can create circle colliders
+- Naive and Quadtree broad phases have been implemented using AABBs
+- Function jump table to resolve PolyVsPoly, CircleVsCircle and PolyVsCircle collisions has been implemented
+- Narrow Phase uses SAT
+- Chris Hecker's simple physics solver with 4 steps as of now
 
 
