@@ -1,9 +1,12 @@
 ﻿#include "Core/CoreSystems/InputSystem.h"
 
 #include "DebugStatements.h"
-#include "imgui_impl_sdl3.h"
 #include "Application/Application.h"
 #include "SDL3/SDL_events.h"
+
+#ifdef _DEBUG
+#include "imgui_impl_sdl3.h"
+#endif
 
 void Core::Input::InputSystem::Update()
 {
